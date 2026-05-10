@@ -38,15 +38,9 @@ void main() async {
     anonKey: AppConfig.supabaseAnonKey,
   );
 
-  final container = ProviderContainer();
-
-  // Initialize Notifications
-  await container.read(notificationServiceProvider).initialize();
-
   runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const IllDoItApp(),
+    const ProviderScope(
+      child: IllDoItApp(),
     ),
   );
 }
@@ -62,7 +56,7 @@ class _IllDoItAppState extends ConsumerState<IllDoItApp> {
   @override
   void initState() {
     super.initState();
-    // Notification service is already initialized in main()
+    // Notifications will be initialized when needed or via a provider
   }
 
   @override

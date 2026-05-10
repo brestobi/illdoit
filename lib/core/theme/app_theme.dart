@@ -4,7 +4,7 @@ import '../constants/app_colors.dart';
 class AppTheme {
   static ThemeData get darkTheme {
     return ThemeData(
-      useMaterial3: true,
+      useMaterial3: false, // Reverting to Material 2 for maximum stability
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBg,
       primaryColor: AppColors.primary,
@@ -96,15 +96,6 @@ class AppTheme {
         ),
       ),
 
-      // Card Theme
-      cardTheme: CardThemeData(
-        color: AppColors.surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-
       // Text Themes
       textTheme: const TextTheme(
         displayLarge: TextStyle(
@@ -112,23 +103,13 @@ class AppTheme {
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        displayMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-        ),
-        displaySmall: TextStyle(
+        headlineMedium: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        headlineMedium: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
         headlineSmall: TextStyle(
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -157,19 +138,6 @@ class AppTheme {
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
         ),
-        labelLarge: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
-        ),
-      ),
-
-      // Bottom Navigation Theme
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        elevation: 8,
       ),
     );
   }
