@@ -19,161 +19,166 @@ class VerificationCenterScreen extends ConsumerWidget {
         elevation: 0,
       ),
       body: profileAsync.when(
-        data: (user) => SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          user.isVerified
-                              ? Icons.verified
-                              : user.verificationStatus == 'pending'
-                                  ? Icons.hourglass_empty
-                                  : user.verificationStatus == 'rejected'
-                                      ? Icons.report_problem
-                                      : Icons.shield_outlined,
-                          size: 48,
-                          color: AppColors.darkBg,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user.isVerified
-                                    ? 'Verified Identity'
-                                    : user.verificationStatus == 'pending'
-                                        ? 'Review in Progress'
-                                        : user.verificationStatus == 'rejected'
-                                            ? 'Action Required'
-                                            : 'Start Verification',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.darkBg,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user.isVerified
-                                    ? 'Your account is fully verified and ready for trusted work.'
-                                    : user.verificationStatus == 'pending'
-                                        ? 'We are reviewing your documents. This usually takes 24-48 hours.'
-                                        : user.verificationStatus == 'rejected'
-                                            ? 'Your previous submission was not approved. Resubmit clearer documents to continue.'
-                                            : 'Complete identity verification to unlock higher-value jobs and faster payouts.',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.darkBg,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
+        data: (user) {
+          if (user == null) {
+            return const Center(child: Text('User not found. Please log in again.'));
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            user.isVerified
+                                ? Icons.verified
+                                : user.verificationStatus == 'pending'
+                                    ? Icons.hourglass_empty
+                                    : user.verificationStatus == 'rejected'
+                                        ? Icons.report_problem
+                                        : Icons.shield_outlined,
+                            size: 48,
+                            color: AppColors.darkBg,
                           ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.isVerified
+                                      ? 'Verified Identity'
+                                      : user.verificationStatus == 'pending'
+                                          ? 'Review in Progress'
+                                          : user.verificationStatus == 'rejected'
+                                              ? 'Action Required'
+                                              : 'Start Verification',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.darkBg,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user.isVerified
+                                      ? 'Your account is fully verified and ready for trusted work.'
+                                      : user.verificationStatus == 'pending'
+                                          ? 'We are reviewing your documents. This usually takes 24-48 hours.'
+                                          : user.verificationStatus == 'rejected'
+                                              ? 'Your previous submission was not approved. Resubmit clearer documents to continue.'
+                                              : 'Complete identity verification to unlock higher-value jobs and faster payouts.',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.darkBg,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!user.isVerified) ...[
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: user.verificationStatus == 'pending'
+                              ? OutlinedButton(
+                                  onPressed: null,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.darkBg,
+                                    side: const BorderSide(color: AppColors.darkBg),
+                                  ),
+                                  child: const Text('Waiting for review'),
+                                )
+                              : ElevatedButton(
+                                  onPressed: () => context.push(AppRoutes.idVerification),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.darkBg,
+                                    foregroundColor: AppColors.primary,
+                                  ),
+                                  child: Text(user.verificationStatus == 'rejected' ? 'Resubmit documents' : 'Submit verification'),
+                                ),
                         ),
                       ],
-                    ),
-                    if (!user.isVerified) ...[
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: user.verificationStatus == 'pending'
-                            ? OutlinedButton(
-                                onPressed: null,
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.darkBg,
-                                  side: const BorderSide(color: AppColors.darkBg),
-                                ),
-                                child: const Text('Waiting for review'),
-                              )
-                            : ElevatedButton(
-                                onPressed: () => context.push(AppRoutes.idVerification),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.darkBg,
-                                  foregroundColor: AppColors.primary,
-                                ),
-                                child: Text(user.verificationStatus == 'rejected' ? 'Resubmit documents' : 'Submit verification'),
-                              ),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 32),
 
-              const Text(
-                'Verification Steps',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                const Text(
+                  'Verification Steps',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Level 1: Phone & Email (Assumed done if they are here)
-              _buildVerificationStep(
-                title: 'Contact Verification',
-                subtitle: 'Email and Phone Number',
-                isCompleted: true, // Always true if they can access profile?
-                icon: Icons.contact_phone_outlined,
-              ),
-
-              // Level 2: ID Verification
-              _buildVerificationStep(
-                title: 'Identity Verification',
-                subtitle: 'South African ID or Passport',
-                isCompleted: user.isVerified,
-                isPending: user.verificationStatus == 'pending',
-                icon: Icons.badge_outlined,
-                onTap: (user.isVerified || user.verificationStatus == 'pending') ? null : () {
-                  context.push(AppRoutes.idVerification);
-                },
-              ),
-
-              // Level 3: Selfie Verification
-              _buildVerificationStep(
-                title: 'Face Verification',
-                subtitle: 'Liveness check with your camera',
-                isCompleted: user.isVerified, 
-                isPending: user.verificationStatus == 'pending',
-                icon: Icons.face_outlined,
-                onTap: (user.isVerified || user.verificationStatus == 'pending') ? null : () {
-                  context.push(AppRoutes.idVerification); // Same flow for now
-                },
-              ),
-
-              const SizedBox(height: 40),
-              
-              const Text(
-                'Why verify?',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                // Level 1: Phone & Email (Assumed done if they are here)
+                _buildVerificationStep(
+                  title: 'Contact Verification',
+                  subtitle: 'Email and Phone Number',
+                  isCompleted: true, // Always true if they can access profile?
+                  icon: Icons.contact_phone_outlined,
                 ),
-              ),
-              const SizedBox(height: 12),
-              _buildWhyItem(Icons.trending_up, 'Higher ranking in search results'),
-              _buildWhyItem(Icons.lock_outline, 'Access to high-budget jobs'),
-              _buildWhyItem(Icons.verified_outlined, 'Official "Verified" badge on profile'),
-              _buildWhyItem(Icons.account_balance_wallet_outlined, 'Faster payment withdrawals'),
-            ],
-          ),
-        ),
+
+                // Level 2: ID Verification
+                _buildVerificationStep(
+                  title: 'Identity Verification',
+                  subtitle: 'South African ID or Passport',
+                  isCompleted: user.isVerified,
+                  isPending: user.verificationStatus == 'pending',
+                  icon: Icons.badge_outlined,
+                  onTap: (user.isVerified || user.verificationStatus == 'pending') ? null : () {
+                    context.push(AppRoutes.idVerification);
+                  },
+                ),
+
+                // Level 3: Selfie Verification
+                _buildVerificationStep(
+                  title: 'Face Verification',
+                  subtitle: 'Liveness check with your camera',
+                  isCompleted: user.isVerified, 
+                  isPending: user.verificationStatus == 'pending',
+                  icon: Icons.face_outlined,
+                  onTap: (user.isVerified || user.verificationStatus == 'pending') ? null : () {
+                    context.push(AppRoutes.idVerification); // Same flow for now
+                  },
+                ),
+
+                const SizedBox(height: 40),
+                
+                const Text(
+                  'Why verify?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildWhyItem(Icons.trending_up, 'Higher ranking in search results'),
+                _buildWhyItem(Icons.lock_outline, 'Access to high-budget jobs'),
+                _buildWhyItem(Icons.verified_outlined, 'Official "Verified" badge on profile'),
+                _buildWhyItem(Icons.account_balance_wallet_outlined, 'Faster payment withdrawals'),
+              ],
+            ),
+          );
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),

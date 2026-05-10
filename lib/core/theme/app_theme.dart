@@ -18,17 +18,15 @@ class AppTheme {
         onPrimary: AppColors.darkBg,
         onSecondary: AppColors.darkBg,
         onSurface: AppColors.textPrimary,
-        surfaceContainer: AppColors.surface,
-        surfaceContainerHighest: AppColors.surfaceAlt,
       ),
 
       // App Bar Theme
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,

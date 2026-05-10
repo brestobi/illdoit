@@ -26,13 +26,16 @@ class ProfileScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Navigate to settings
+              context.push(AppRoutes.settings);
             },
           ),
         ],
       ),
       body: profileAsync.when(
         data: (user) {
+          if (user == null) {
+            return const Center(child: Text('User not found. Please log in again.'));
+          }
           final reviewsAsync = ref.watch(userReviewsProvider(user.id));
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),

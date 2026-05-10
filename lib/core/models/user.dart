@@ -24,6 +24,9 @@ class User with _$User {
     @JsonKey(name: 'verification_metadata') Map<String, dynamic>? verificationMetadata,
     @Default(0.0) double balance,
     @JsonKey(name: 'escrow_balance') @Default(0.0) double escrowBalance,
+    @JsonKey(name: 'is_profile_public') @Default(true) bool isProfilePublic,
+    @JsonKey(name: 'show_last_seen') @Default(true) bool showLastSeen,
+    @JsonKey(name: 'show_contact_info') @Default(false) bool showContactInfo,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _User;

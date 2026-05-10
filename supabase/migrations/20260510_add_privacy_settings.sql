@@ -1,0 +1,5 @@
+-- Add privacy settings to users table
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS is_profile_public BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS show_last_seen BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS show_contact_info BOOLEAN DEFAULT FALSE;

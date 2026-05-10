@@ -26,7 +26,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final profile = ref.read(profileProvider).value;
+    final profile = ref.read(profileProvider).valueOrNull;
     _displayNameController = TextEditingController(text: profile?.displayName ?? '');
     _bioController = TextEditingController(text: profile?.bio ?? '');
     _selectedProvince = profile?.location;
@@ -132,6 +132,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       ),
       body: profileAsync.when(
         data: (profile) {
+          if (profile == null) return const Center(child: Text('Profile not found'));
+          
           // Initialize controllers if they are empty and profile is available
           if (_displayNameController.text.isEmpty && profile.displayName.isNotEmpty) {
             _displayNameController.text = profile.displayName;

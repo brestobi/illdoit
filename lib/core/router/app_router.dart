@@ -22,6 +22,7 @@ import '../../features/jobs/presentation/screens/create_job_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/verification_center_screen.dart';
 import '../../features/profile/presentation/screens/id_verification_screen.dart';
+import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/providers/profile_provider.dart';
 
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -54,6 +55,7 @@ class AppRoutes {
   static const String jobDetail = '/job/:id';
   static const String createJob = '/create-job';
   static const String profile = '/profile';
+  static const String settings = '/settings';
   static const String editProfile = '/edit-profile';
   static const String verificationCenter = '/verification-center';
   static const String idVerification = '/id-verification';
@@ -65,53 +67,66 @@ class AppRoutes {
   static const String manageApplications = '/manage-applications/:jobId';
 }
 
+/// A notifier that bridges Riverpod and GoRouter's refreshListenable
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    // Notify GoRouter when auth or profile state changes
+    _ref.listen(authProvider, (_, __) => notifyListeners());
+    _ref.listen(profileProvider, (_, __) => notifyListeners());
+  }
+
+  String? redirect(BuildContext context, GoRouterState state) {
+    final authState = _ref.read(authProvider);
+    final profileAsync = _ref.read(profileProvider);
+    
+    final isLoading = authState.isLoading;
+    final isAuthenticated = authState.isAuthenticated;
+    
+    final isLoggingIn = state.matchedLocation == AppRoutes.login;
+    final isSigningUp = state.matchedLocation == AppRoutes.signup;
+    final isForgotPassword = state.matchedLocation == AppRoutes.forgotPassword;
+    final isPhoneLogin = state.matchedLocation == AppRoutes.phoneLogin;
+    final isOtpVerify = state.matchedLocation == AppRoutes.otpVerify;
+    final isOnboarding = state.matchedLocation == AppRoutes.onboarding;
+    final isSplash = state.matchedLocation == AppRoutes.splash;
+
+    if (isLoading) return null;
+
+    if (!isAuthenticated) {
+      if (isLoggingIn || isSigningUp || isForgotPassword || isPhoneLogin || isOtpVerify || isSplash) return null;
+      return AppRoutes.login;
+    }
+
+    if (isAuthenticated) {
+      // If authenticated but on auth screens, go home
+      if (isLoggingIn || isSigningUp || isForgotPassword || isPhoneLogin || isOtpVerify || isSplash) {
+        return AppRoutes.home;
+      }
+
+      // Check onboarding status
+      final profile = profileAsync.valueOrNull;
+      if (profile != null && !profile.isOnboardingCompleted && !isOnboarding) {
+        return AppRoutes.onboarding;
+      }
+    }
+
+    return null;
+  }
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) => RouterNotifier(ref));
+
 /// GoRouter provider for navigation
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
-  final profileAsync = ref.watch(profileProvider);
+  final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
     debugLogDiagnostics: true,
-    redirect: (context, state) {
-      final isLoading = authState.isLoading;
-      final isAuthenticated = authState.isAuthenticated;
-      
-      final isLoggingIn = state.matchedLocation == AppRoutes.login;
-      final isSigningUp = state.matchedLocation == AppRoutes.signup;
-      final isForgotPassword = state.matchedLocation == AppRoutes.forgotPassword;
-      final isPhoneLogin = state.matchedLocation == AppRoutes.phoneLogin;
-      final isOtpVerify = state.matchedLocation == AppRoutes.otpVerify;
-      final isOnboarding = state.matchedLocation == AppRoutes.onboarding;
-      final isSplash = state.matchedLocation == AppRoutes.splash;
-
-      if (isLoading) return null;
-
-      if (!isAuthenticated) {
-        if (isLoggingIn || isSigningUp || isForgotPassword || isPhoneLogin || isOtpVerify || isSplash) return null;
-        return AppRoutes.login;
-      }
-
-      if (isAuthenticated) {
-        // If authenticated but on auth screens, go home (which might redirect to onboarding)
-        if (isLoggingIn || isSigningUp || isForgotPassword || isPhoneLogin || isOtpVerify || isSplash) {
-          return AppRoutes.home;
-        }
-
-        // Check onboarding status (this is a bit tricky with FutureProvider)
-        // For now, we'll allow home but we should ideally check isOnboardingCompleted
-        // A better way is to use a synchronous provider for the profile if possible, 
-        // or just let the Onboarding screen handle it if the user landed there.
-        
-        // Let's try to get the profile synchronously if it's already loaded
-        final profile = profileAsync.valueOrNull;
-        if (profile != null && !profile.isOnboardingCompleted && !isOnboarding) {
-          return AppRoutes.onboarding;
-        }
-      }
-
-      return null;
-    },
     routes: [
       // Splash Screen
       GoRoute(
@@ -196,6 +211,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.profile,
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: AppRoutes.editProfile,
