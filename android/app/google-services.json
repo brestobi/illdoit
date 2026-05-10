@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "797655594738",
+    "project_id": "illdoit-app",
+    "storage_bucket": "illdoit-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797655594738:android:841fd143af5e0a8b1dc26b",
+        "android_client_info": {
+          "package_name": "com.example.ill_do_it"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBl6TjMZ9Xya8frm90kpj9wxZvTVHe34Wo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
