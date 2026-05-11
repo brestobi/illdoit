@@ -30,11 +30,37 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- CRITICAL FIX: Disable Impeller to prevent keyboard-triggered GPU crash.
+             Flutter 3.41.x Impeller has a known crash on many Android devices when
+             the soft keyboard appears (surface resize triggers GPU pipeline failure).
+             Skia (the previous renderer) is stable and used instead. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+        <!-- flutter_local_notifications v17 required receivers -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
     </application>
+    <!-- Internet access for Supabase / Firebase -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Push notifications on Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Boot receiver for scheduled local notifications -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
          https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-         
+
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
         <intent>
