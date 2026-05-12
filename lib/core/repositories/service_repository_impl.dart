@@ -71,7 +71,6 @@ class ServiceRepositoryImpl implements ServiceRepository {
         throw ServerException('Service not found');
       }
 
-      print('Service data from Supabase: ${results.first}');
       return Service.fromJson(results.first);
     } catch (e) {
       if (e is ServerException) rethrow;

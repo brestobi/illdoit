@@ -197,7 +197,7 @@ class ServicesScreen extends ConsumerWidget {
               children: [
                 Chip(
                   label: Text('${service.totalOrders} Orders'),
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                   labelStyle: const TextStyle(
                     fontSize: 10,
                     color: AppColors.primary,
@@ -209,7 +209,7 @@ class ServicesScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Chip(
                   label: Text('${service.rating}★'),
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                   labelStyle: const TextStyle(
                     fontSize: 10,
                     color: AppColors.primary,

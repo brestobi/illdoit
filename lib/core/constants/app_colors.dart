@@ -60,9 +60,4 @@ class AppColors {
       Color(0xFF0F0F0F),
     ],
   );
-
-  // Utility method for opacity
-  static Color withOpacity(Color color, double opacity) {
-    return color.withOpacity(opacity);
-  }
 }

@@ -321,7 +321,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.borderColor,
@@ -458,7 +458,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.primary.withOpacity(0.7)),
+          Icon(icon, size: 18, color: AppColors.primary.withValues(alpha: 0.7)),
           const SizedBox(width: 12),
           Text(text, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
         ],

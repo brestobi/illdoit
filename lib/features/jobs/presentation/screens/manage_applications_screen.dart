@@ -162,7 +162,7 @@ class ManageApplicationsScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 
                 // Action Buttons
-                if (application.status == 'pending')
+                if (application.status == ApplicationStatus.pending)
                   Row(
                     children: [
                       Expanded(
@@ -193,9 +193,9 @@ class ManageApplicationsScreen extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: application.status == 'accepted' 
-                        ? AppColors.success.withOpacity(0.1) 
-                        : AppColors.error.withOpacity(0.1),
+                      color: application.status == ApplicationStatus.accepted 
+                        ? AppColors.success.withValues(alpha: 0.1) 
+                        : AppColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(

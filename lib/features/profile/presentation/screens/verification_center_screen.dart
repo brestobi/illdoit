@@ -200,9 +200,9 @@ class VerificationCenterScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isCompleted 
-            ? AppColors.primary.withOpacity(0.5) 
+            ? AppColors.primary.withValues(alpha: 0.5) 
             : isPending 
-              ? AppColors.warning.withOpacity(0.5) 
+              ? AppColors.warning.withValues(alpha: 0.5) 
               : AppColors.borderColor,
         ),
       ),
@@ -212,9 +212,9 @@ class VerificationCenterScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isCompleted 
-              ? AppColors.primary.withOpacity(0.1) 
+              ? AppColors.primary.withValues(alpha: 0.1) 
               : isPending 
-                ? AppColors.warning.withOpacity(0.1) 
+                ? AppColors.warning.withValues(alpha: 0.1) 
                 : AppColors.darkBg,
             shape: BoxShape.circle,
           ),

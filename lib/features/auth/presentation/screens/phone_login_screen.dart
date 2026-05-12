@@ -36,10 +36,18 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
       return;
     }
 
-    await ref.read(authProvider.notifier).signInWithPhone(phone: phone);
-    
-    if (mounted && ref.read(authProvider).errorMessage == null) {
-      context.push(AppRoutes.otpVerify, extra: phone);
+    try {
+      await ref.read(authProvider.notifier).signInWithPhone(phone: phone);
+      
+      if (mounted && ref.read(authProvider).errorMessage == null) {
+        context.push(AppRoutes.otpVerify, extra: phone);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 

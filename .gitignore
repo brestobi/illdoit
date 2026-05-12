@@ -58,3 +58,4 @@ coverage/
 # Supabase Installers
 supabase.deb
 supabase.tar.gz
+crash_log*.txt

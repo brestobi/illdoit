@@ -282,7 +282,6 @@ class UserRepositoryImpl implements UserRepository {
       }
     } catch (e) {
       // Log error but don't fail, as it might be handled by trigger now
-      print('Ensure profile exists error: $e');
     }
   }
 }

@@ -252,7 +252,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Text(
               DateFormat('HH:mm').format(message.createdAt),
               style: TextStyle(
-                color: (isMe ? AppColors.darkBg : AppColors.textSecondary).withOpacity(0.7),
+                color: (isMe ? AppColors.darkBg : AppColors.textSecondary).withValues(alpha: 0.7),
                 fontSize: 10,
               ),
             ),

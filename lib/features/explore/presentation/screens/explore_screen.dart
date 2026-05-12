@@ -200,7 +200,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       onTap: () => ref.read(selectedCategoryProvider.notifier).state = name,
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.borderColor,
@@ -333,7 +333,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.work_outline, color: AppColors.primary),
