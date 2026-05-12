@@ -16,9 +16,20 @@ CREATE TABLE IF NOT EXISTS payments (
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 
 -- Policies
-CREATE POLICY "Users can view their own payments"
-ON payments FOR SELECT
-USING (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_policies
+        WHERE tablename = 'payments'
+          AND policyname = 'Users can view their own payments'
+    ) THEN
+        CREATE POLICY "Users can view their own payments"
+        ON payments FOR SELECT
+        USING (auth.uid() = user_id);
+    END IF;
+END
+$$;
 
 -- Only service role or webhooks should be able to update/insert without user context if needed, 
 -- but for now let's allow the user to see their own status.

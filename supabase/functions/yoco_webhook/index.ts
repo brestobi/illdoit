@@ -46,7 +46,9 @@ export default async (req: Request) => {
       }
 
       // 2. Update payment record
-      await supabase
+      // The 'on_payment_success' database trigger will automatically 
+      // create a transaction and update the user's balance.
+      const { error: updateError } = await supabase
         .from('payments')
         .update({ 
           status: 'successful', 
@@ -55,21 +57,9 @@ export default async (req: Request) => {
         })
         .eq('id', paymentId);
 
-      // 3. Create a transaction record (this updates the user's viewable balance)
-      const { error: txError } = await supabase
-        .from('transactions')
-        .insert({
-          sender_id: userId,
-          receiver_id: userId,
-          amount: amountInCents / 100,
-          type: 'deposit',
-          status: 'completed',
-          reference: `Yoco: ${reference}`
-        });
-
-      if (txError) {
-        console.error('Failed to create transaction:', txError);
-        // We don't return error to Yoco here because we want them to stop retrying if the payment was actually successful
+      if (updateError) {
+        console.error('Failed to update payment status:', updateError);
+        return new Response(JSON.stringify({ error: 'Database update failed' }), { status: 500 });
       }
 
       return new Response(JSON.stringify({ success: true }), { status: 200 });

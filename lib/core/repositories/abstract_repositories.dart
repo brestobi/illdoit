@@ -108,7 +108,7 @@ abstract class JobRepository {
   Future<String> uploadJobImage({required List<int> bytes});
 
   /// Get all jobs
-  Future<List<Job>> getJobs({String? status, String? category});
+  Future<List<Job>> getJobs({String? status, String? category, String? location});
 
   /// Get job by ID
   Future<Job> getJobById({required String jobId});

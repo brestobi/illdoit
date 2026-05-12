@@ -12,6 +12,9 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 /// Selected category provider
 final selectedCategoryProvider = StateProvider<String?>((ref) => null);
 
+/// Selected location provider
+final selectedLocationProvider = StateProvider<String?>((ref) => null);
+
 /// Search type (Services, Jobs or Users)
 enum SearchType { services, jobs, users }
 final searchTypeProvider = StateProvider<SearchType>((ref) => SearchType.services);
@@ -37,17 +40,22 @@ final exploreServicesProvider = FutureProvider<List<Service>>((ref) async {
 final exploreJobsProvider = FutureProvider<List<Job>>((ref) async {
   final query = ref.watch(searchQueryProvider);
   final category = ref.watch(selectedCategoryProvider);
+  final location = ref.watch(selectedLocationProvider);
   final jobRepository = ref.watch(jobRepositoryProvider);
 
-  if (query.isEmpty && category == null) {
+  if (query.isEmpty && category == null && location == null) {
     return jobRepository.getJobs();
   }
 
-  if (query.isNotEmpty) {
-    return jobRepository.searchJobs(query: query, category: category);
+  if (query.isNotEmpty || location != null) {
+    return jobRepository.searchJobs(
+      query: query,
+      category: category,
+      location: location,
+    );
   }
 
-  return jobRepository.getJobs(category: category);
+  return jobRepository.getJobs(category: category, location: location);
 });
 
 /// Explore users results provider

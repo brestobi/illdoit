@@ -28,6 +28,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   late TextEditingController _budgetController;
   late DateTime _selectedDeadline;
   late String _selectedCategory;
+  late String _selectedLocation;
   final List<dynamic> _images = [];
 
   final List<String> _categories = [
@@ -42,6 +43,15 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     'Support',
   ];
 
+  final List<String> _locations = [
+    'Remote',
+    'Cape Town',
+    'Johannesburg',
+    'Durban',
+    'Pretoria',
+    'Port Elizabeth',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +61,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     _budgetController = TextEditingController(text: job?.budget.toString() ?? '');
     _selectedDeadline = job?.deadline ?? DateTime.now().add(const Duration(days: 7));
     _selectedCategory = job?.category ?? 'Design';
+    _selectedLocation = 'Remote'; // Default
     if (job != null) {
       _images.addAll(job.images);
     }
@@ -131,6 +142,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim(),
           'category': _selectedCategory,
+          'location': _selectedLocation,
           'budget': double.parse(_budgetController.text),
           'deadline': _selectedDeadline.toIso8601String(),
           'images': imageUrls,
@@ -263,6 +275,28 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+
+              // Location
+              DropdownButtonFormField<String>(
+                value: _selectedLocation,
+                decoration: const InputDecoration(
+                  labelText: 'Location',
+                  prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                ),
+                dropdownColor: AppColors.surface,
+                items: _locations.map((loc) {
+                  return DropdownMenuItem(
+                    value: loc,
+                    child: Text(loc, style: const TextStyle(color: AppColors.textPrimary)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedLocation = value);
+                  }
+                },
               ),
               const SizedBox(height: 16),
 

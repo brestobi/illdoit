@@ -90,8 +90,37 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 _buildTypeChip(SearchType.users, 'Users'),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
+            // Location Filter (Only for Jobs)
+            if (searchType == SearchType.jobs) ...[
+              DropdownButtonFormField<String>(
+                value: ref.watch(selectedLocationProvider),
+                decoration: InputDecoration(
+                  hintText: 'Filter by Location',
+                  prefixIcon: const Icon(Icons.location_on_outlined),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  suffixIcon: ref.watch(selectedLocationProvider) != null
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () => ref.read(selectedLocationProvider.notifier).state = null,
+                        )
+                      : null,
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Cape Town', child: Text('Cape Town')),
+                  DropdownMenuItem(value: 'Johannesburg', child: Text('Johannesburg')),
+                  DropdownMenuItem(value: 'Durban', child: Text('Durban')),
+                  DropdownMenuItem(value: 'Pretoria', child: Text('Pretoria')),
+                  DropdownMenuItem(value: 'Port Elizabeth', child: Text('Port Elizabeth')),
+                ],
+                onChanged: (value) => ref.read(selectedLocationProvider.notifier).state = value,
+                dropdownColor: AppColors.surface,
+                style: const TextStyle(color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 24),
+            ],
+            
             // Categories
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

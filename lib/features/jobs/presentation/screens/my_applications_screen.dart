@@ -17,24 +17,36 @@ class MyApplicationsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('My Applications'),
       ),
-      body: applicationsAsync.when(
-        data: (applications) => applications.isEmpty
-            ? const Center(
-                child: Text(
-                  'You haven\'t applied for any jobs yet.',
-                  style: TextStyle(color: AppColors.textSecondary),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(myApplicationsProvider);
+          return ref.read(myApplicationsProvider.future);
+        },
+        child: applicationsAsync.when(
+          data: (applications) => applications.isEmpty
+              ? SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'You haven\'t applied for any jobs yet.',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: applications.length,
+                  itemBuilder: (context, index) {
+                    final application = applications[index];
+                    return _ApplicationTile(application: application);
+                  },
                 ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: applications.length,
-                itemBuilder: (context, index) {
-                  final application = applications[index];
-                  return _ApplicationTile(application: application);
-                },
-              ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err')),
+        ),
       ),
     );
   }
@@ -103,9 +115,65 @@ class _ApplicationTile extends StatelessWidget {
               fontSize: 12,
             ),
           ),
+          if (application.status == ApplicationStatus.pending) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _handleCancel(context, ref),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.error,
+                  side: const BorderSide(color: AppColors.error),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: const Text('Cancel Interest'),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _handleCancel(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Interest?'),
+        content: const Text('Are you sure you want to withdraw your interest for this job?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ref.read(jobApplicationNotifierProvider.notifier).withdrawApplication(
+              applicationId: application.id,
+              jobId: application.jobId,
+            );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Interest withdrawn successfully.')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to withdraw interest: $e')),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildStatusBadge(ApplicationStatus status) {

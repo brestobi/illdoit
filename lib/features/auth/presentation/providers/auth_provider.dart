@@ -40,11 +40,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // Listen to auth state changes
     _supabaseService.authStateChanges.listen((event) {
       final user = event.session?.user;
-      state = state.copyWith(user: user);
+      state = state.copyWith(user: user, isLoading: false);
       
       // If user just signed in or token refreshed, ensure profile exists
       if (user != null && (event.event == supabase.AuthChangeEvent.signedIn || event.event == supabase.AuthChangeEvent.tokenRefreshed)) {
         _ref.read(userRepositoryProvider).ensureProfileExists();
+        _ref.read(notificationServiceProvider).updateToken();
       }
     });
   }
@@ -104,14 +105,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       await _supabaseService.signInWithGoogle();
-      
-      // Ensure profile exists immediately
-      await _ref.read(userRepositoryProvider).ensureProfileExists();
-      
-      // Update push token
-      await _ref.read(notificationServiceProvider).updateToken();
-      
-      state = state.copyWith(isLoading: false);
+      // Note: We don't set isLoading to false here because the actual 
+      // sign-in happens when the user returns from the browser.
+      // The authStateChanges listener will handle the session.
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }

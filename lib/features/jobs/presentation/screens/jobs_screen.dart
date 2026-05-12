@@ -63,28 +63,41 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
           ),
           // Content
           Expanded(
-            child: jobsAsync.when(
-              data: (jobs) => jobs.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: jobs.length,
-                      itemBuilder: (context, index) {
-                        return _buildJobCard(jobs[index]);
-                      },
-                    ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Error: $err', style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => ref.refresh(jobsByStatusProvider(_status)),
-                      child: const Text('Retry'),
-                    ),
-                  ],
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(jobsByStatusProvider(_status));
+                return ref.read(jobsByStatusProvider(_status).future);
+              },
+              child: jobsAsync.when(
+                data: (jobs) => jobs.isEmpty
+                    ? SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: _buildEmptyState(),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: jobs.length,
+                        itemBuilder: (context, index) {
+                          return _buildJobCard(jobs[index]);
+                        },
+                      ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Error: $err', style: const TextStyle(color: Colors.red)),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref.refresh(jobsByStatusProvider(_status)),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -220,6 +233,19 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                         color: AppColors.primary,
                       ),
                     ),
+                    if (job.location != null) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            job.location!,
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Text(
                       'Due: $deadlineStr',

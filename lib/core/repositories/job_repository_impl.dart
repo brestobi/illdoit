@@ -66,11 +66,12 @@ class JobRepositoryImpl implements JobRepository {
   }
 
   @override
-  Future<List<Job>> getJobs({String? status, String? category}) async {
+  Future<List<Job>> getJobs({String? status, String? category, String? location}) async {
     try {
       final filters = <String, dynamic>{};
       if (status != null) filters['status'] = status;
       if (category != null) filters['category'] = category;
+      if (location != null) filters['location'] = location;
       
       final results = await _supabaseService.query(
         table: 'jobs',
@@ -136,12 +137,14 @@ class JobRepositoryImpl implements JobRepository {
     String? location,
   }) async {
     try {
-      final filters = category != null ? {'category': category} : null;
+      final filters = <String, dynamic>{};
+      if (category != null) filters['category'] = category;
+      if (location != null) filters['location'] = location;
 
       final results = await _supabaseService.query(
         table: 'jobs',
-        filters: filters,
-        searchFilters: {'title': query},
+        filters: filters.isNotEmpty ? filters : null,
+        searchFilters: query.isNotEmpty ? {'title': query} : null,
       );
       
       return results.map((e) => Job.fromJson(e)).toList();

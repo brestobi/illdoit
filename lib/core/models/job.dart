@@ -11,6 +11,7 @@ class Job with _$Job {
     required String title,
     required String description,
     required String category,
+    String? location,
     required double budget,
     required DateTime deadline,
     @Default('open') String status,

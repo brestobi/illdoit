@@ -220,10 +220,9 @@ class ManageApplicationsScreen extends ConsumerWidget {
   Future<void> _handleStatusUpdate(WidgetRef ref, String id, ApplicationStatus status) async {
     await ref.read(jobApplicationNotifierProvider.notifier).updateStatus(
       applicationId: id,
+      jobId: jobId,
       status: status,
     );
-    // Refresh the list
-    ref.invalidate(jobApplicationsProvider(jobId));
   }
 }
 

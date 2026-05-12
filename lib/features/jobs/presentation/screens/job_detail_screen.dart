@@ -37,6 +37,13 @@ class JobDetailScreen extends ConsumerWidget {
           appBar: AppBar(
             title: const Text('Job Details'),
             elevation: 0,
+            actions: [
+              if (isOwner)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                  onPressed: () => _handleDeleteJob(context, ref, job.id),
+                ),
+            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -91,12 +98,16 @@ class JobDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Budget & Deadline
+                // Budget & Deadline & Location
                 Row(
                   children: [
                     _buildInfoItem(Icons.payments_outlined, 'Budget', 'R${job.budget.toStringAsFixed(0)}'),
                     const SizedBox(width: 32),
                     _buildInfoItem(Icons.calendar_today_outlined, 'Deadline', deadlineStr),
+                    if (job.location != null) ...[
+                      const SizedBox(width: 32),
+                      _buildInfoItem(Icons.location_on_outlined, 'Location', job.location!),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 32),
@@ -215,13 +226,13 @@ class JobDetailScreen extends ConsumerWidget {
                                             );
                                         if (context.mounted) {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Application submitted successfully.')),
+                                            const SnackBar(content: Text('Your interest has been submitted!')),
                                           );
                                         }
                                       } catch (e) {
                                         if (context.mounted) {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Failed to apply: $e')),
+                                            SnackBar(content: Text('Failed to submit: $e')),
                                           );
                                         }
                                       }
@@ -232,9 +243,9 @@ class JobDetailScreen extends ConsumerWidget {
                           isOwner
                               ? 'Manage Applications'
                               : canApply
-                                  ? 'Apply Now'
+                                  ? "I'll do it"
                                   : job.status == 'applied'
-                                      ? 'Application Sent'
+                                      ? 'Interest Sent'
                                       : 'Job ${job.status.capitalize()}',
                         ),
                       ),
@@ -267,6 +278,45 @@ class JobDetailScreen extends ConsumerWidget {
         body: Center(child: Text('Error: $err')),
       ),
     );
+  }
+
+  Future<void> _handleDeleteJob(BuildContext context, WidgetRef ref, String jobId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Job?'),
+        content: const Text('Are you sure you want to delete this job? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ref.read(jobNotifierProvider.notifier).deleteJob(jobId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Job deleted successfully.')),
+          );
+          context.pop();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete job: $e')),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _showReviewDialog(BuildContext context, WidgetRef ref, String targetUserId) async {
@@ -412,7 +462,7 @@ class _ApplyDialogState extends State<_ApplyDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.surface,
-      title: const Text('Apply for Job', style: TextStyle(color: AppColors.textPrimary)),
+      title: const Text("I'll do it", style: TextStyle(color: AppColors.textPrimary)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
