@@ -156,7 +156,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
           'receiver_id': currentUser.id,
           'amount': amount,
           'type': 'withdrawal',
-          'status': 'completed', // We deduct it immediately for the user's view
+          'status': 'pending', // Mark as pending until admin approves
           'reference': 'Withdrawal to $bankName',
         },
       );
@@ -196,7 +196,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
   @override
   Future<void> releaseEscrow({required String orderId}) async {
     try {
-      // Find the escrow transaction
+      // 1. Fetch order to get the fee
+      final orderResults = await _supabaseService.query(
+        table: 'orders',
+        filters: {'id': orderId},
+      );
+      if (orderResults.isEmpty) throw ServerException('Order not found');
+      final fee = (orderResults.first['fee'] as num?)?.toDouble() ?? 0.0;
+
+      // 2. Find the escrow transaction
       final results = await _supabaseService.query(
         table: 'transactions',
         filters: {'order_id': orderId, 'type': 'escrow'},
@@ -206,11 +214,15 @@ class TransactionRepositoryImpl implements TransactionRepository {
       
       final txId = results.first['id'];
 
-      // Mark as completed
+      // 3. Mark as completed and record the fee
       await _supabaseService.update(
         table: 'transactions',
         id: txId,
-        data: {'status': 'completed', 'type': 'escrow_release'},
+        data: {
+          'status': 'completed', 
+          'type': 'escrow_release',
+          'fee': fee,
+        },
       );
     } catch (e) {
       throw ServerException('Failed to release escrow: $e');

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/app_logo.dart';
+import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -41,19 +43,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Logo/App Icon
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.work,
-                size: 40,
-                color: AppColors.darkBg,
-              ),
-            ),
+            const AppLogo(size: 100),
             const SizedBox(height: 24),
             // App Title
             const Text(
@@ -77,15 +67,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 48),
             // Loading Indicator
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                strokeWidth: 3,
-              ),
-            ),
+            const WalkingWorkerLoader(label: 'Preparing your hustle...'),
           ],
         ),
       ),

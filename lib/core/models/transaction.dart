@@ -10,6 +10,7 @@ class Transaction with _$Transaction {
     @JsonKey(name: 'sender_id') required String senderId,
     @JsonKey(name: 'receiver_id') required String receiverId,
     required double amount,
+    @Default(0) double fee,
     required String type,
     @Default('pending') String status,
     String? reference,

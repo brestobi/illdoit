@@ -35,7 +35,7 @@ export default async (req: Request) => {
     const amount = Number(body.amount);
     const currency = body.currency || 'ZAR';
     const clientReference = body.reference; // Reference from client
-    const description = body.description || 'Wallet top-up';
+    const description = body.description || 'Cash In';
 
     if (!amount || amount <= 0) {
       return new Response(JSON.stringify({ error: 'Invalid amount.' }), {

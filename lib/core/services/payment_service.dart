@@ -46,13 +46,13 @@ class PaymentService {
     }
   }
 
-  /// Launch the checkout URL in the system browser
+  /// Launch the checkout URL in an in-app web view
   Future<void> launchCheckout(String url) async {
     final uri = Uri.parse(url);
     try {
       final launched = await launchUrl(
         uri,
-        mode: LaunchMode.externalApplication,
+        mode: LaunchMode.inAppWebView,
       );
       if (!launched) {
         throw ServerException('Could not launch payment gateway. Please try again.');

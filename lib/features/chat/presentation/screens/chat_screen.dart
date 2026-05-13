@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/message.dart';
 import '../../../../core/repositories/message_repository_impl.dart';
@@ -227,17 +228,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 padding: const EdgeInsets.only(bottom: 4),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    message.imageUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: message.imageUrl!,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    },
+                    placeholder: (context, url) => const SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (context, url, error) => const SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline, color: Colors.white70),
+                          SizedBox(height: 8),
+                          Text(
+                            'Image failed to load',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

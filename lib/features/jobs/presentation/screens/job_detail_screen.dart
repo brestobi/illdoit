@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/router/app_router.dart';
@@ -167,9 +169,20 @@ class JobDetailScreen extends ConsumerWidget {
                           margin: const EdgeInsets.only(right: 12),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            image: DecorationImage(
-                              image: NetworkImage(job.images[index]),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedNetworkImage(
+                              imageUrl: job.images[index],
                               fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: AppColors.surface,
+                                child: const Center(child: CircularProgressIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: AppColors.surface,
+                                child: const Icon(Icons.error_outline, color: Colors.white54),
+                              ),
                             ),
                           ),
                         );
@@ -271,7 +284,7 @@ class JobDetailScreen extends ConsumerWidget {
       },
       loading: () => const Scaffold(
         backgroundColor: AppColors.darkBg,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: WalkingWorkerLoader(label: 'Loading job details...')),
       ),
       error: (err, stack) => Scaffold(
         backgroundColor: AppColors.darkBg,
@@ -533,7 +546,7 @@ class _ClientCard extends ConsumerWidget {
             CircleAvatar(
               radius: 25,
               backgroundImage: user.avatarUrl != null
-                  ? NetworkImage(user.avatarUrl!)
+                  ? CachedNetworkImageProvider(user.avatarUrl!)
                   : null,
               child: user.avatarUrl == null
                   ? const Icon(Icons.person)
@@ -595,14 +608,14 @@ class _ClientCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                // TODO: View full profile
+                context.push(AppRoutes.publicProfile.replaceFirst(':id', job.clientId));
               },
               child: const Text('View Profile'),
             ),
           ],
         ),
       ),
-      loading: () => const SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
+      loading: () => const SizedBox(height: 100, child: Center(child: WalkingWorkerLoader(size: 30, label: 'Loading client...'))),
       error: (err, stack) => const Text('Error loading client'),
     );
   }

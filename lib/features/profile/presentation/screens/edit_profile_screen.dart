@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
@@ -159,7 +160,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           backgroundImage: _imageFile != null
                               ? FileImage(_imageFile!)
                               : (profile.avatarUrl != null
-                                  ? NetworkImage(profile.avatarUrl!) as ImageProvider
+                                  ? CachedNetworkImageProvider(profile.avatarUrl!) as ImageProvider
                                   : null),
                           child: _imageFile == null && profile.avatarUrl == null
                               ? const Icon(Icons.person, size: 60, color: AppColors.textSecondary)

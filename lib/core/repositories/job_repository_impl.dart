@@ -267,7 +267,7 @@ class JobRepositoryImpl implements JobRepository {
         final clientBalance = (clientResults.first['balance'] as num?)?.toDouble() ?? 0.0;
 
         if (clientBalance < bidAmount) {
-          throw ServerException('Insufficient funds in wallet to hire. Please top up your wallet.');
+          throw ServerException('Insufficient funds in wallet to hire. Please "Cash In" to top up your wallet.');
         }
 
         // 4. Create an Order for the job

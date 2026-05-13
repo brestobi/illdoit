@@ -52,7 +52,7 @@ class MyApplicationsScreen extends ConsumerWidget {
   }
 }
 
-class _ApplicationTile extends StatelessWidget {
+class _ApplicationTile extends ConsumerWidget {
   final JobApplication application;
 
   const _ApplicationTile({
@@ -61,7 +61,7 @@ class _ApplicationTile extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateStr = DateFormat('MMM dd, yyyy').format(application.createdAt);
 
     return Container(

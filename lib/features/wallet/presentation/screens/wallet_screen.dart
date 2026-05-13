@@ -6,6 +6,7 @@ import '../../../../core/models/transaction.dart';
 import '../../../../core/repositories/transaction_repository_impl.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/payment_service.dart';
+import '../../../../core/widgets/walking_worker_loader.dart';
 import '../providers/wallet_provider.dart';
 
 class WalletScreen extends ConsumerWidget {
@@ -67,7 +68,7 @@ class WalletScreen extends ConsumerWidget {
                       ),
                       loading: () => const SizedBox(
                         height: 44,
-                        child: Center(child: CircularProgressIndicator(color: AppColors.darkBg)),
+                        child: Center(child: WalkingWorkerLoader(size: 30, color: AppColors.darkBg)),
                       ),
                       error: (err, _) => const Text('R 0.00', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.darkBg)),
                     ),
@@ -86,7 +87,7 @@ class WalletScreen extends ConsumerWidget {
                           child: ElevatedButton(
                             onPressed: () => _showDepositDialog(context, ref),
                             style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkBg),
-                            child: const Text('Add Funds', style: TextStyle(color: AppColors.primary)),
+                            child: const Text('Cash In', style: TextStyle(color: AppColors.primary)),
                           ),
                         ),
                       ],
@@ -100,7 +101,16 @@ class WalletScreen extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _buildStatBox('Pending', 'R 0.00'), // Placeholder for future use
+                    child: ref.watch(withdrawalRequestsProvider).when(
+                      data: (requests) {
+                        final pendingAmount = requests
+                            .where((r) => r.status == 'pending')
+                            .fold(0.0, (sum, r) => sum + r.amount);
+                        return _buildStatBox('Pending', currencyFormat.format(pendingAmount));
+                      },
+                      loading: () => _buildStatBox('Pending', '...'),
+                      error: (_, __) => _buildStatBox('Pending', 'R 0.00'),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -140,12 +150,110 @@ class WalletScreen extends ConsumerWidget {
                           return _buildTransactionItem(transactions[index], currentUserId);
                         },
                       ),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: WalkingWorkerLoader(label: 'Fetching history...'),
+                  ),
+                ),
                 error: (err, _) => Center(child: Text('Error: $err')),
               ),
+              const SizedBox(height: 24),
+
+              // Withdrawal Requests
+              const Text(
+                'Withdrawal Requests',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ref.watch(withdrawalRequestsProvider).when(
+                data: (requests) => requests.isEmpty
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Text('No withdrawal requests.', style: TextStyle(color: AppColors.textSecondary)),
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: requests.length,
+                        itemBuilder: (context, index) {
+                          final req = requests[index];
+                          return _buildWithdrawalItem(req);
+                        },
+                      ),
+                loading: () => const Center(child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(),
+                )),
+                error: (err, _) => Center(child: Text('Error: $err')),
+              ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildWithdrawalItem(WithdrawalRequest req) {
+    final currencyFormat = NumberFormat.currency(symbol: 'R ', decimalDigits: 2);
+    final dateStr = DateFormat('MMM dd, yyyy').format(req.createdAt ?? DateTime.now());
+    
+    Color statusColor = AppColors.primary;
+    if (req.status == 'approved' || req.status == 'completed') statusColor = AppColors.success;
+    if (req.status == 'rejected' || req.status == 'failed') statusColor = AppColors.error;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Withdraw to ${req.bankName}',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(dateStr, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                currencyFormat.format(req.amount),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  req.status.toUpperCase(),
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -258,7 +366,7 @@ class WalletScreen extends ConsumerWidget {
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: AppColors.surface,
-              title: const Text('Add Funds', style: TextStyle(color: AppColors.textPrimary)),
+              title: const Text('Cash In', style: TextStyle(color: AppColors.textPrimary)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -281,7 +389,7 @@ class WalletScreen extends ConsumerWidget {
               ),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Add Funds')),
+                ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cash In')),
               ],
             );
           }
@@ -308,7 +416,7 @@ class WalletScreen extends ConsumerWidget {
         final paymentData = await paymentService.createYocoCheckout(
           amount: amount,
           currency: 'ZAR',
-          reference: 'wallet_topup_${DateTime.now().millisecondsSinceEpoch}',
+          reference: 'cash_in_${DateTime.now().millisecondsSinceEpoch}',
         );
 
         final checkoutUrl = paymentData['checkout_url'] as String;
@@ -331,7 +439,7 @@ class WalletScreen extends ConsumerWidget {
         // Fallback for other gateways (Ozow/PayFast)
         await ref.read(transactionRepositoryProvider).depositFunds(
           amount: amount,
-          reference: 'Wallet top-up',
+          reference: 'Cash In',
           gateway: selectedGateway,
         );
         if (!context.mounted) return;

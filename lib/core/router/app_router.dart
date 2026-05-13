@@ -20,6 +20,7 @@ import '../../features/jobs/presentation/screens/manage_applications_screen.dart
 import '../../features/services/presentation/screens/create_service_screen.dart';
 import '../../features/jobs/presentation/screens/create_job_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/public_profile_screen.dart';
 import '../../features/profile/presentation/screens/verification_center_screen.dart';
 import '../../features/profile/presentation/screens/id_verification_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
@@ -57,6 +58,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String editProfile = '/edit-profile';
+  static const String publicProfile = '/profile/:id';
   static const String verificationCenter = '/verification-center';
   static const String idVerification = '/id-verification';
   static const String wallet = '/wallet';
@@ -219,6 +221,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.editProfile,
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.publicProfile,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PublicProfileScreen(userId: id);
+        },
       ),
       GoRoute(
         path: AppRoutes.verificationCenter,

@@ -1,0 +1,22 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Terminal Background -->
+  <rect width="128" height="128" rx="28" fill="#FFD700"/>
+  
+  <!-- Terminal Prompt Stylized Icon -->
+  <path d="M30 40L45 50L30 60" stroke="#0F0F0F" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Worker Silhouette (Stylized Blocks) -->
+  <!-- Head -->
+  <circle cx="75" cy="45" r="8" fill="#0F0F0F"/>
+  <!-- Torso -->
+  <rect x="65" y="55" width="20" height="25" rx="4" fill="#0F0F0F"/>
+  <!-- Arms -->
+  <path d="M60 60L55 75" stroke="#0F0F0F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M90 60L95 75" stroke="#0F0F0F" stroke-width="6" stroke-linecap="round"/>
+  <!-- Legs (Walking position) -->
+  <path d="M70 80L65 95" stroke="#0F0F0F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M80 80L85 95" stroke="#0F0F0F" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- "id" text in terminal style -->
+  <rect x="35" y="75" width="25" height="4" fill="#0F0F0F" opacity="0.8"/>
+</svg>

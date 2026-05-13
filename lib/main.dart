@@ -7,7 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
-import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 
 // Background message handler
@@ -36,7 +35,6 @@ void main() async {
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     anonKey: AppConfig.supabaseAnonKey,
-    authCallbackUrlScheme: 'io.supabase.flutter',
   );
 
   runApp(
@@ -57,7 +55,10 @@ class _IllDoItAppState extends ConsumerState<IllDoItApp> {
   @override
   void initState() {
     super.initState();
-    // Notifications will be initialized when needed or via a provider
+    // Initialize notifications
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationServiceProvider).initialize();
+    });
   }
 
   @override

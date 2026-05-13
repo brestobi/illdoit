@@ -21,6 +21,7 @@ class Order with _$Order {
     @JsonKey(name: 'seller_id') required String sellerId,
     @JsonKey(name: 'service_id') required String serviceId,
     required double amount,
+    @Default(0) double fee,
     @Default(OrderStatus.pending) OrderStatus status,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,

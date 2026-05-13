@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/models/user.dart';
@@ -34,9 +35,17 @@ class ServiceDetailScreen extends ConsumerWidget {
               backgroundColor: AppColors.darkBg,
               flexibleSpace: FlexibleSpaceBar(
                 background: service.images.isNotEmpty
-                    ? Image.network(
-                        service.images.first,
+                    ? CachedNetworkImage(
+                        imageUrl: service.images.first,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: AppColors.surface,
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.surface,
+                          child: const Icon(Icons.error_outline, color: Colors.white54, size: 48),
+                        ),
                       )
                     : Container(
                         color: AppColors.surface,
@@ -255,7 +264,7 @@ class _SellerCard extends ConsumerWidget {
             CircleAvatar(
               radius: 25,
               backgroundImage: user.avatarUrl != null
-                  ? NetworkImage(user.avatarUrl!)
+                  ? CachedNetworkImageProvider(user.avatarUrl!)
                   : null,
               child: user.avatarUrl == null
                   ? const Icon(Icons.person)
@@ -293,7 +302,7 @@ class _SellerCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                // TODO: View full profile
+                context.push(AppRoutes.publicProfile.replaceFirst(':id', service.userId));
               },
               child: const Text('View Profile'),
             ),

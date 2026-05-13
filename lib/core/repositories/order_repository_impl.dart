@@ -21,6 +21,9 @@ class OrderRepositoryImpl implements OrderRepository {
     if (currentUser == null) throw AuthenticationException('No user logged in');
 
     try {
+      // Platform fee (e.g., 10%)
+      final fee = amount * 0.10;
+
       // 1. Create the order
       final response = await _supabaseService.insert(
         table: 'orders',
@@ -29,6 +32,7 @@ class OrderRepositoryImpl implements OrderRepository {
           'seller_id': sellerId,
           'service_id': serviceId,
           'amount': amount,
+          'fee': fee, // Record the fee
           'status': 'pending',
         },
       );

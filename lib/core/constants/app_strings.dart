@@ -57,7 +57,7 @@ class AppStrings {
   static const String availableBalance = 'Available Balance';
   static const String pendingPayments = 'Pending Payments';
   static const String withdraw = 'Withdraw';
-  static const String addFunds = 'Add Funds';
+  static const String addFunds = 'Cash In';
   static const String transactionHistory = 'Transaction History';
   static const String recentTransactions = 'Recent Transactions';
 

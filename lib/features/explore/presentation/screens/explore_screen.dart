@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
@@ -296,16 +297,24 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(8),
-                image: service.images.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(service.images.first),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
               ),
-              child: service.images.isEmpty
-                  ? const Icon(Icons.image_outlined, color: AppColors.darkBg)
-                  : null,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: service.images.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: service.images.first,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => const Icon(Icons.error_outline, size: 20),
+                      )
+                    : const Icon(Icons.image_outlined, color: AppColors.darkBg),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -406,90 +415,93 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   }
 
   Widget _buildUserCard(User user) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: AppColors.primary,
-            backgroundImage: user.avatarUrl != null
-                ? NetworkImage(user.avatarUrl!)
-                : null,
-            child: user.avatarUrl == null
-                ? const Icon(Icons.person, color: AppColors.darkBg)
-                : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () => context.push(AppRoutes.publicProfile.replaceFirst(':id', user.id)),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderColor),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: AppColors.primary,
+              backgroundImage: user.avatarUrl != null
+                  ? CachedNetworkImageProvider(user.avatarUrl!)
+                  : null,
+              child: user.avatarUrl == null
+                  ? const Icon(Icons.person, color: AppColors.darkBg)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        user.displayName,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (user.isVerified) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.verified, size: 14, color: AppColors.primary),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user.skills.isNotEmpty
+                        ? user.skills.join(', ')
+                        : 'No skills listed',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Row(
                   children: [
+                    const Icon(Icons.star, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 4),
                     Text(
-                      user.displayName,
+                      user.rating.toStringAsFixed(1),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    if (user.isVerified) ...[
-                      const SizedBox(width: 4),
-                      const Icon(Icons.verified, size: 14, color: AppColors.primary),
-                    ],
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user.skills.isNotEmpty
-                      ? user.skills.join(', ')
-                      : 'No skills listed',
+                  '${user.completedJobs} jobs',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.star, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  Text(
-                    user.rating.toStringAsFixed(1),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${user.completedJobs} jobs',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

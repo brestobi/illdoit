@@ -232,12 +232,17 @@ class SupabaseService {
     required List<int> bytes,
   }) async {
     try {
-      final response = await client.storage.from(bucket).uploadBinary(
+      await client.storage.from(bucket).uploadBinary(
             path,
             Uint8List.fromList(bytes),
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
           );
-      return client.storage.from(bucket).getPublicUrl(response);
+      return client.storage.from(bucket).getPublicUrl(path);
     } catch (e) {
+      print('File upload error: $e');
       throw ServerException('File upload failed: $e');
     }
   }

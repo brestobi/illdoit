@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/models/user.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../core/widgets/walking_worker_loader.dart';
 import 'package:ill_do_it/features/profile/presentation/providers/profile_provider.dart';
 import '../providers/home_provider.dart';
 
@@ -24,6 +27,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
+        leading: const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: AppLogo(size: 32),
+        ),
         title: const Text('I\'ll Do It'),
         elevation: 0,
         actions: [
@@ -196,10 +203,10 @@ class HomeScreen extends ConsumerWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: services.length > 5 ? 5 : services.length,
                         itemBuilder: (context, index) {
-                          return _buildServiceCard(services[index]);
+                          return _buildServiceCard(context, services[index]);
                         },
                       ),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
                 error: (err, _) => Center(child: Text('Error: $err')),
               ),
               const SizedBox(height: 24),
@@ -231,10 +238,10 @@ class HomeScreen extends ConsumerWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: jobs.length > 5 ? 5 : jobs.length,
                         itemBuilder: (context, index) {
-                          return _buildJobCard(jobs[index]);
+                          return _buildJobCard(context, jobs[index]);
                         },
                       ),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
                 error: (err, _) => Center(child: Text('Error: $err')),
               ),
               const SizedBox(height: 24),
@@ -269,7 +276,7 @@ class HomeScreen extends ConsumerWidget {
                           return _buildWorkerCard(context, workers[index]);
                         },
                       ),
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
                 error: (err, _) => Center(child: Text('Error: $err')),
               ),
               const SizedBox(height: 24),
@@ -284,8 +291,7 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildWorkerCard(BuildContext context, User worker) {
     return GestureDetector(
       onTap: () {
-        // Navigate to worker profile
-        // context.push(AppRoutes.profile, extra: worker.id);
+        context.push(AppRoutes.publicProfile.replaceFirst(':id', worker.id));
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -300,7 +306,7 @@ class HomeScreen extends ConsumerWidget {
             CircleAvatar(
               radius: 25,
               backgroundImage: worker.avatarUrl != null
-                  ? NetworkImage(worker.avatarUrl!)
+                  ? CachedNetworkImageProvider(worker.avatarUrl!)
                   : null,
               child: worker.avatarUrl == null
                   ? const Icon(Icons.person)
@@ -379,7 +385,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceCard(Service service) {
+  Widget _buildServiceCard(BuildContext context, Service service) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -396,16 +402,24 @@ class HomeScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(8),
-              image: service.images.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(service.images.first),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
             ),
-            child: service.images.isEmpty
-                ? const Icon(Icons.design_services, color: AppColors.darkBg)
-                : null,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: service.images.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: service.images.first,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(Icons.error_outline, size: 20),
+                    )
+                  : const Icon(Icons.design_services, color: AppColors.darkBg),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -458,7 +472,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildJobCard(Job job) {
+  Widget _buildJobCard(BuildContext context, Job job) {
     return GestureDetector(
       onTap: () => context.push(AppRoutes.jobDetail.replaceFirst(':id', job.id)),
       child: Container(
