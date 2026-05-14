@@ -23,3 +23,8 @@ class LocationRepository {
 final locationsProvider = FutureProvider<List<AppLocation>>((ref) async {
   return ref.watch(locationRepositoryProvider).getLocations();
 });
+
+final provincesProvider = FutureProvider<List<String>>((ref) async {
+  final locations = await ref.watch(locationsProvider.future);
+  return locations.map((e) => e.province).toSet().toList()..sort();
+});

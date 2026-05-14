@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/repositories/category_repository.dart';
+import '../../../../core/utils/category_utils.dart';
 import '../../../../core/utils/validators.dart';
 import '../providers/services_provider.dart';
 
@@ -27,21 +29,8 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
   late TextEditingController _deliveryTimeController;
-  late String _selectedCategory;
+  String? _selectedCategory;
   final List<dynamic> _images = []; // Can be File or String (URL)
-
-  final List<String> _categories = [
-    'Graphic Design',
-    'Web Development',
-    'Tutoring',
-    'Video Editing',
-    'CV Writing',
-    'Photography',
-    'Social Media Help',
-    'AI Services',
-    'Music & Audio',
-    'Tech Support',
-  ];
 
   @override
   void initState() {
@@ -51,7 +40,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     _descriptionController = TextEditingController(text: service?.description ?? '');
     _priceController = TextEditingController(text: service?.price.toString() ?? '');
     _deliveryTimeController = TextEditingController(text: service?.deliveryTime.toString() ?? '');
-    _selectedCategory = service?.category ?? 'Graphic Design';
+    _selectedCategory = service?.category;
     if (service != null) {
       _images.addAll(service.images);
     }
@@ -139,6 +128,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(serviceNotifierProvider);
     final isEditing = widget.service != null;
+    final categoriesAsync = ref.watch(allCategoriesProvider);
 
     ref.listen<ServiceState>(serviceNotifierProvider, (previous, next) {
       if (next.errorMessage != null) {
@@ -269,23 +259,30 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
               const SizedBox(height: 16),
 
               // Category
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
+              categoriesAsync.when(
+                data: (categories) => DropdownButtonFormField<String>(
+                  value: _selectedCategory != null && categories.any((c) => c.name == _selectedCategory) 
+                      ? _selectedCategory 
+                      : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                  ),
+                  dropdownColor: AppColors.surface,
+                  items: categories.map((cat) {
+                    return DropdownMenuItem(
+                      value: cat.name,
+                      child: Text(cat.name, style: const TextStyle(color: AppColors.textPrimary)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedCategory = value);
+                    }
+                  },
+                  validator: (value) => value == null ? 'Please select a category' : null,
                 ),
-                dropdownColor: AppColors.surface,
-                items: _categories.map((cat) {
-                  return DropdownMenuItem(
-                    value: cat,
-                    child: Text(cat, style: const TextStyle(color: AppColors.textPrimary)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedCategory = value);
-                  }
-                },
+                loading: () => const LinearProgressIndicator(),
+                error: (e, __) => Text('Error loading categories: $e', style: const TextStyle(color: Colors.red)),
               ),
               const SizedBox(height: 16),
 

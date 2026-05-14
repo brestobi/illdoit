@@ -7,8 +7,11 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/models/user.dart';
+import '../../../../core/models/location.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../core/repositories/location_repository.dart';
+import '../../../../core/repositories/category_repository.dart';
+import '../../../../core/utils/category_utils.dart';
 import '../providers/explore_provider.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -21,18 +24,6 @@ class ExploreScreen extends ConsumerStatefulWidget {
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Design', 'icon': Icons.palette_outlined},
-    {'name': 'Development', 'icon': Icons.code},
-    {'name': 'Marketing', 'icon': Icons.campaign_outlined},
-    {'name': 'Writing', 'icon': Icons.edit_note},
-    {'name': 'Video', 'icon': Icons.videocam_outlined},
-    {'name': 'Music', 'icon': Icons.music_note_outlined},
-    {'name': 'Photography', 'icon': Icons.camera_alt_outlined},
-    {'name': 'Tutoring', 'icon': Icons.school_outlined},
-    {'name': 'Support', 'icon': Icons.support_agent_outlined},
-  ];
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -44,6 +35,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final searchType = ref.watch(searchTypeProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final locationsAsync = ref.watch(locationsProvider);
+    final categoriesAsync = ref.watch(allCategoriesProvider);
     final resultsAsync = searchType == SearchType.services
         ? ref.watch(exploreServicesProvider)
         : (searchType == SearchType.jobs
@@ -144,24 +136,33 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1,
+            categoriesAsync.when(
+              data: (categories) => GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final cat = categories[index];
+                  return _buildCategoryCard(
+                    cat.name,
+                    CategoryUtils.getIconForCategory(cat.name),
+                    selectedCategory == cat.name,
+                  );
+                },
               ),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final cat = _categories[index];
-                return _buildCategoryCard(
-                  cat['name'],
-                  cat['icon'],
-                  selectedCategory == cat['name'],
-                );
-              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 24),
 

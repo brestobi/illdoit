@@ -8,6 +8,8 @@ import '../../../../core/models/service.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/models/user.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/repositories/category_repository.dart';
+import '../../../../core/utils/category_utils.dart';
 import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
@@ -19,22 +21,12 @@ import '../providers/home_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
-  final List<Map<String, dynamic>> _categories = const [
-    {'name': 'Design', 'icon': Icons.palette_outlined},
-    {'name': 'Dev', 'icon': Icons.code_rounded},
-    {'name': 'Writing', 'icon': Icons.edit_note_rounded},
-    {'name': 'Marketing', 'icon': Icons.campaign_outlined},
-    {'name': 'Video', 'icon': Icons.videocam_outlined},
-    {'name': 'Music', 'icon': Icons.music_note_outlined},
-    {'name': 'Photo', 'icon': Icons.camera_alt_outlined},
-    {'name': 'Tutor', 'icon': Icons.school_outlined},
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trendingServicesAsync = ref.watch(trendingServicesProvider);
     final recentJobsAsync = ref.watch(recentJobsProvider);
     final recommendedWorkersAsync = ref.watch(recommendedWorkersProvider);
+    final categoriesAsync = ref.watch(allCategoriesProvider);
     final currentUser = ref.watch(supabaseServiceProvider).currentUser;
     final userName = currentUser?.userMetadata?['full_name'] ?? 'Hustler';
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -172,20 +164,32 @@ class HomeScreen extends ConsumerWidget {
                       children: [
                         _buildSectionHeader(context, 'Explore Categories', null),
                         const SizedBox(height: 16),
-                        SizedBox(
-                          height: 90,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _categories.length,
-                            clipBehavior: Clip.none,
-                            itemBuilder: (context, index) {
-                              final cat = _categories[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 16),
-                                child: _buildCategoryItem(context, cat['name'], cat['icon'], ref),
-                              );
-                            },
+                        categoriesAsync.when(
+                          data: (categories) => SizedBox(
+                            height: 90,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: categories.length > 10 ? 10 : categories.length, // Limit home screen to top 10
+                              clipBehavior: Clip.none,
+                              itemBuilder: (context, index) {
+                                final cat = categories[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 16),
+                                  child: _buildCategoryItem(
+                                    context,
+                                    cat.name,
+                                    CategoryUtils.getIconForCategory(cat.name),
+                                    ref,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
+                          loading: () => const SizedBox(
+                            height: 90,
+                            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          ),
+                          error: (_, __) => const SizedBox.shrink(),
                         ),
                       ],
                     ),

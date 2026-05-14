@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../../core/repositories/app_config_repository.dart';
 import '../../../../core/utils/validators.dart';
 import '../providers/profile_provider.dart';
 
@@ -38,13 +39,6 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   File? _idBackFile;
   File? _selfieFile;
   bool _isLoading = false;
-
-  final List<String> _idTypes = [
-    'South African ID Smart Card',
-    'South African ID Book (Green)',
-    'Passport',
-    'Driver\'s License',
-  ];
 
   @override
   void dispose() {
@@ -212,6 +206,9 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final idTypesAsync = ref.watch(idTypesProvider);
+    final banksAsync = ref.watch(supportedBanksProvider);
+
     return Scaffold(
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
@@ -263,12 +260,13 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               onPageChanged: (index) => setState(() => _currentStep = index),
               children: [
                 _buildPersonalInfoStep(),
-                _buildIdTypeStep(),
+                _buildIdTypeStep(idTypesAsync),
                 _buildFrontImageStep(),
                 _buildBackImageStep(),
-                _buildBankDetailsStep(),
+                _buildBankDetailsStep(banksAsync),
                 _buildSelfieStep(),
               ],
+
             ),
           ),
 
@@ -377,7 +375,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     );
   }
 
-  Widget _buildBankDetailsStep() {
+  Widget _buildBankDetailsStep(AsyncValue<List<String>> banksAsync) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Form(
@@ -389,11 +387,30 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               'Banking Details', 
               'Where should we send your earnings? Please ensure the account belongs to you.'
             ),
-            TextFormField(
-              controller: _bankNameController,
-              decoration: const InputDecoration(labelText: 'Bank Name', hintText: 'e.g. FNB, Standard Bank'),
-              style: const TextStyle(color: AppColors.textPrimary),
-              validator: (value) => Validators.required(value, 'Bank name'),
+            banksAsync.when(
+              data: (banks) => DropdownButtonFormField<String>(
+                value: _bankNameController.text.isNotEmpty && banks.contains(_bankNameController.text) 
+                    ? _bankNameController.text 
+                    : null,
+                decoration: const InputDecoration(labelText: 'Bank Name', hintText: 'Select your bank'),
+                style: const TextStyle(color: AppColors.textPrimary),
+                dropdownColor: AppColors.surface,
+                items: banks.map((bank) => DropdownMenuItem(
+                  value: bank,
+                  child: Text(bank, style: const TextStyle(fontSize: 14)),
+                )).toList(),
+                onChanged: (val) {
+                  if (val != null) setState(() => _bankNameController.text = val);
+                },
+                validator: (value) => Validators.required(value, 'Bank name'),
+              ),
+              loading: () => const LinearProgressIndicator(),
+              error: (e, __) => TextFormField(
+                controller: _bankNameController,
+                decoration: const InputDecoration(labelText: 'Bank Name', hintText: 'e.g. FNB, Standard Bank'),
+                style: const TextStyle(color: AppColors.textPrimary),
+                validator: (value) => Validators.required(value, 'Bank name'),
+              ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -424,7 +441,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     );
   }
 
-  Widget _buildIdTypeStep() {
+  Widget _buildIdTypeStep(AsyncValue<List<String>> idTypesAsync) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -434,12 +451,18 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
             'Select Document Type', 
             'Which identity document will you be using for verification?'
           ),
-          ..._idTypes.map((type) => _buildSelectionCard(
-            title: type,
-            isSelected: _selectedIdType == type,
-            onTap: () => setState(() => _selectedIdType = type),
-            icon: type == 'Passport' ? Icons.public : Icons.badge_outlined,
-          )),
+          idTypesAsync.when(
+            data: (idTypes) => Column(
+              children: idTypes.map((type) => _buildSelectionCard(
+                title: type,
+                isSelected: _selectedIdType == type,
+                onTap: () => setState(() => _selectedIdType = type),
+                icon: type == 'Passport' ? Icons.public : Icons.badge_outlined,
+              )).toList(),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, __) => Text('Error loading ID types: $e', style: const TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );

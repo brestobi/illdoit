@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order.dart';
 import '../../../../core/repositories/order_repository_impl.dart';
+import '../../../../core/repositories/app_config_repository.dart';
 import '../../../../core/services/invoice_service.dart';
 import '../providers/orders_provider.dart';
 import 'package:intl/intl.dart';
@@ -214,47 +215,59 @@ class _OrderTile extends ConsumerWidget {
   }
 
   Future<void> _showDisputeDialog(BuildContext context, WidgetRef ref, Order order) async {
-    final reasonController = TextEditingController();
+    final disputeReasonsAsync = ref.read(disputeReasonsProvider);
+    String? selectedReason;
     final descController = TextEditingController();
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Raise a Dispute', style: TextStyle(color: AppColors.textPrimary)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: reasonController,
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: const InputDecoration(labelText: 'Reason (e.g., Service not delivered)'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descController,
-              maxLines: 3,
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: const InputDecoration(labelText: 'Detailed Description'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: const Text('Raise a Dispute', style: TextStyle(color: AppColors.textPrimary)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              disputeReasonsAsync.when(
+                data: (reasons) => DropdownButtonFormField<String>(
+                  value: selectedReason,
+                  decoration: const InputDecoration(labelText: 'Reason'),
+                  dropdownColor: AppColors.surface,
+                  items: reasons.map((r) => DropdownMenuItem(
+                    value: r,
+                    child: Text(r, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                  )).toList(),
+                  onChanged: (val) => setState(() => selectedReason = val),
+                ),
+                loading: () => const LinearProgressIndicator(),
+                error: (e, __) => Text('Error: $e', style: const TextStyle(color: Colors.red)),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descController,
+                maxLines: 3,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: const InputDecoration(labelText: 'Detailed Description'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: selectedReason == null ? null : () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              child: const Text('Raise Dispute'),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('Raise Dispute'),
-          ),
-        ],
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && selectedReason != null) {
       try {
         await ref.read(orderRepositoryProvider).raiseDispute(
           orderId: order.id,
-          reason: reasonController.text.trim(),
+          reason: selectedReason!,
           description: descController.text.trim(),
         );
         if (context.mounted) {

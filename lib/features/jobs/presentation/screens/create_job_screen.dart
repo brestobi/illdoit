@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/job.dart';
+import '../../../../core/models/location.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/utils/validators.dart';

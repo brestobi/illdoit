@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../repositories/user_repository_impl.dart';
+import '../repositories/app_config_repository.dart';
 
-class ReportUserDialog extends StatefulWidget {
+class ReportUserDialog extends ConsumerStatefulWidget {
   final String targetUserId;
   final String targetUserName;
 
@@ -14,22 +15,13 @@ class ReportUserDialog extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ReportUserDialog> createState() => _ReportUserDialogState();
+  ConsumerState<ReportUserDialog> createState() => _ReportUserDialogState();
 }
 
-class _ReportUserDialogState extends State<ReportUserDialog> {
+class _ReportUserDialogState extends ConsumerState<ReportUserDialog> {
   String? _selectedReason;
   final TextEditingController _descriptionController = TextEditingController();
   bool _isLoading = false;
-
-  final List<String> _reasons = [
-    'Scam or Fraud',
-    'Abusive Behavior',
-    'Inappropriate Content',
-    'Late / No-show for job',
-    'Poor quality of work',
-    'Other',
-  ];
 
   @override
   void dispose() {
@@ -39,6 +31,8 @@ class _ReportUserDialogState extends State<ReportUserDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final reportReasonsAsync = ref.watch(reportReasonsProvider);
+
     return AlertDialog(
       backgroundColor: AppColors.surface,
       title: Text('Report ${widget.targetUserName}', style: const TextStyle(color: AppColors.textPrimary)),
@@ -52,15 +46,21 @@ class _ReportUserDialogState extends State<ReportUserDialog> {
               style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
             const SizedBox(height: 16),
-            ..._reasons.map((reason) => RadioListTile<String>(
-              title: Text(reason, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-              value: reason,
-              groupValue: _selectedReason,
-              onChanged: (val) => setState(() => _selectedReason = val),
-              activeColor: AppColors.primary,
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-            )),
+            reportReasonsAsync.when(
+              data: (reasons) => Column(
+                children: reasons.map((reason) => RadioListTile<String>(
+                  title: Text(reason, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                  value: reason,
+                  groupValue: _selectedReason,
+                  onChanged: (val) => setState(() => _selectedReason = val),
+                  activeColor: AppColors.primary,
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                )).toList(),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, __) => Text('Error loading reasons: $e', style: const TextStyle(color: Colors.red)),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,

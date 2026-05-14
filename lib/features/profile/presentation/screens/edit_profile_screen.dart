@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/utils/validators.dart';
 import '../providers/profile_provider.dart';
 
@@ -108,6 +109,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final provincesAsync = ref.watch(provincesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.darkBg,
@@ -212,26 +214,32 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(height: 20),
 
                   // Location
-                  DropdownButtonFormField<String>(
-                    value: _selectedProvince,
-                    style: const TextStyle(color: AppColors.textPrimary),
-                    dropdownColor: AppColors.surface,
-                    decoration: const InputDecoration(
-                      labelText: 'Location (Province)',
-                      prefixIcon: Icon(Icons.location_on_outlined),
+                  provincesAsync.when(
+                    data: (provinces) => DropdownButtonFormField<String>(
+                      value: _selectedProvince != null && provinces.contains(_selectedProvince) 
+                          ? _selectedProvince 
+                          : null,
+                      style: const TextStyle(color: AppColors.textPrimary),
+                      dropdownColor: AppColors.surface,
+                      decoration: const InputDecoration(
+                        labelText: 'Location (Province)',
+                        prefixIcon: Icon(Icons.location_on_outlined),
+                      ),
+                      items: provinces.map((String province) {
+                        return DropdownMenuItem<String>(
+                          value: province,
+                          child: Text(province),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedProvince = newValue;
+                        });
+                      },
+                      validator: (value) => Validators.required(value, 'Province'),
                     ),
-                    items: AppStrings.provinces.map((String province) {
-                      return DropdownMenuItem<String>(
-                        value: province,
-                        child: Text(province),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedProvince = newValue;
-                      });
-                    },
-                    validator: (value) => Validators.required(value, 'Province'),
+                    loading: () => const LinearProgressIndicator(),
+                    error: (e, __) => Text('Error loading provinces: $e', style: const TextStyle(color: Colors.red)),
                   ),
                   const SizedBox(height: 20),
 

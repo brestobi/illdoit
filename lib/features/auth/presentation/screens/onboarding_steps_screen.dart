@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../../core/repositories/skill_repository.dart';
+import '../../../../core/repositories/location_repository.dart';
+import '../../../../core/models/location.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 class OnboardingStepsScreen extends ConsumerStatefulWidget {
@@ -25,12 +28,6 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   List<String> _selectedSkills = [];
-
-  final List<String> _availableSkills = [
-    'Plumbing', 'Electrical', 'Carpentry', 'Cleaning', 
-    'Gardening', 'Painting', 'Graphic Design', 'Web Development',
-    'Writing', 'Tutoring', 'Handyman', 'Delivery'
-  ];
 
   @override
   void initState() {
@@ -116,6 +113,9 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final skillsAsync = ref.watch(skillsProvider);
+    final locationsAsync = ref.watch(locationsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.darkBg,
       body: SafeArea(
@@ -166,8 +166,8 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
                 children: [
                   _buildRoleSelectionStep(),
                   _buildJobPreferenceStep(),
-                  _buildBasicInfoStep(),
-                  _buildSkillsStep(),
+                  _buildBasicInfoStep(locationsAsync),
+                  _buildSkillsStep(skillsAsync),
                 ],
               ),
             ),
@@ -419,7 +419,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
     );
   }
 
-  Widget _buildBasicInfoStep() {
+  Widget _buildBasicInfoStep(AsyncValue<List<AppLocation>> locationsAsync) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -449,12 +449,36 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          TextField(
-            controller: _locationController,
-            decoration: const InputDecoration(
-              labelText: 'Location',
-              hintText: 'e.g. Johannesburg, Gauteng',
-              prefixIcon: Icon(Icons.location_on_outlined),
+          locationsAsync.when(
+            data: (locations) => DropdownButtonFormField<String>(
+              value: _locationController.text.isNotEmpty && 
+                     locations.any((l) => "${l.name}, ${l.province}" == _locationController.text)
+                  ? _locationController.text 
+                  : null,
+              decoration: const InputDecoration(
+                labelText: 'Location',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+              dropdownColor: AppColors.surface,
+              items: locations.map((loc) {
+                final val = "${loc.name}, ${loc.province}";
+                return DropdownMenuItem(
+                  value: val,
+                  child: Text(val, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) setState(() => _locationController.text = val);
+              },
+            ),
+            loading: () => const LinearProgressIndicator(),
+            error: (_, __) => TextField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: 'Location',
+                hintText: 'e.g. Johannesburg, Gauteng',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -472,7 +496,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
     );
   }
 
-  Widget _buildSkillsStep() {
+  Widget _buildSkillsStep(AsyncValue<List<String>> skillsAsync) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -492,32 +516,36 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
             style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 32),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: _availableSkills.map((skill) {
-              final isSelected = _selectedSkills.contains(skill);
-              return FilterChip(
-                label: Text(skill),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedSkills.add(skill);
-                    } else {
-                      _selectedSkills.remove(skill);
-                    }
-                  });
-                },
-                selectedColor: AppColors.primary,
-                checkmarkColor: AppColors.black,
-                labelStyle: TextStyle(
-                  color: isSelected ? AppColors.black : AppColors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                backgroundColor: AppColors.surfaceAlt,
-              );
-            }).toList(),
+          skillsAsync.when(
+            data: (skills) => Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: skills.map((skill) {
+                final isSelected = _selectedSkills.contains(skill);
+                return FilterChip(
+                  label: Text(skill),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedSkills.add(skill);
+                      } else {
+                        _selectedSkills.remove(skill);
+                      }
+                    });
+                  },
+                  selectedColor: AppColors.primary,
+                  checkmarkColor: AppColors.black,
+                  labelStyle: TextStyle(
+                    color: isSelected ? AppColors.black : AppColors.textPrimary,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  backgroundColor: AppColors.surfaceAlt,
+                );
+              }).toList(),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, __) => Text('Error loading skills: $e', style: const TextStyle(color: Colors.red)),
           ),
           const SizedBox(height: 24),
           TextField(
