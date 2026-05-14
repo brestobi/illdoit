@@ -10,6 +10,8 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/repositories/location_repository.dart';
+import '../../../../core/repositories/category_repository.dart';
+import '../../../../core/widgets/app_animations.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/jobs_provider.dart';
 
@@ -30,23 +32,12 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _budgetController;
+  late TextEditingController _categorySearchController;
   late DateTime _selectedDeadline;
-  late String _selectedCategory;
+  String? _selectedCategory;
   String? _selectedLocation;
   late String _jobType;
   final List<dynamic> _images = [];
-
-  final List<String> _categories = [
-    'Design',
-    'Development',
-    'Marketing',
-    'Writing',
-    'Video',
-    'Music',
-    'Photography',
-    'Tutoring',
-    'Support',
-  ];
 
   @override
   void initState() {
@@ -55,8 +46,9 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     _titleController = TextEditingController(text: job?.title ?? '');
     _descriptionController = TextEditingController(text: job?.description ?? '');
     _budgetController = TextEditingController(text: job?.budget.toString() ?? '');
+    _categorySearchController = TextEditingController(text: job?.category ?? '');
     _selectedDeadline = job?.deadline ?? DateTime.now().add(const Duration(days: 7));
-    _selectedCategory = job?.category ?? 'Design';
+    _selectedCategory = job?.category;
     _jobType = job?.jobType ?? 'digital';
     _selectedLocation = job?.location;
     if (job != null) {
@@ -69,6 +61,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _budgetController.dispose();
+    _categorySearchController.dispose();
     super.dispose();
   }
 
@@ -167,6 +160,8 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     final state = ref.watch(jobNotifierProvider);
     final profileAsync = ref.watch(profileProvider);
     final locationsAsync = ref.watch(locationsProvider);
+    final digitalCategoriesAsync = ref.watch(digitalCategoriesProvider);
+    final physicalCategoriesAsync = ref.watch(physicalCategoriesProvider);
     final isEditing = widget.job != null;
 
     ref.listen<JobState>(jobNotifierProvider, (previous, next) {
@@ -281,44 +276,100 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Category & Budget
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedCategory,
-                          decoration: const InputDecoration(
-                            labelText: 'Category',
-                          ),
-                          dropdownColor: Theme.of(context).colorScheme.surface,
-                          items: _categories.map((cat) {
-                            return DropdownMenuItem(
-                              value: cat,
-                              child: Text(cat),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _selectedCategory = value);
-                            }
-                          },
+                  // Category Selector
+                  if (_jobType == 'digital')
+                    digitalCategoriesAsync.when(
+                      data: (categories) => DropdownButtonFormField<String>(
+                        value: _selectedCategory,
+                        decoration: const InputDecoration(
+                          labelText: 'Digital Category',
+                          prefixIcon: Icon(Icons.category_outlined, size: 20),
                         ),
+                        dropdownColor: Theme.of(context).colorScheme.surface,
+                        items: categories.map((cat) {
+                          return DropdownMenuItem(
+                            value: cat.name,
+                            child: Text(cat.name),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedCategory = value);
+                        },
+                        validator: (value) => value == null ? 'Please select a category' : null,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _budgetController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            hintText: '0.00',
-                            labelText: 'Budget (R)',
-                            prefixText: 'R ',
-                            prefixStyle: TextStyle(color: AppColors.primary),
-                          ),
-                          validator: Validators.budget,
-                        ),
+                      loading: () => const LinearProgressIndicator(),
+                      error: (err, _) => Text('Error: $err'),
+                    )
+                  else
+                    physicalCategoriesAsync.when(
+                      data: (categories) => Autocomplete<String>(
+                        initialValue: TextEditingValue(text: _selectedCategory ?? ''),
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          if (textEditingValue.text.isEmpty) {
+                            return categories.map((e) => e.name);
+                          }
+                          return categories
+                              .where((cat) => cat.name.toLowerCase().contains(textEditingValue.text.toLowerCase()))
+                              .map((e) => e.name);
+                        },
+                        onSelected: (String selection) {
+                          setState(() => _selectedCategory = selection);
+                        },
+                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                          return TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            decoration: const InputDecoration(
+                              labelText: 'Physical Category (Search as you type)',
+                              hintText: 'e.g. Plumbing, Electrician...',
+                              prefixIcon: Icon(Icons.search_rounded, size: 20),
+                            ),
+                            validator: (value) => (value == null || value.isEmpty) ? 'Please select a category' : null,
+                          );
+                        },
+                        optionsViewBuilder: (context, onSelected, options) {
+                          return Align(
+                            alignment: Alignment.topLeft,
+                            child: Material(
+                              elevation: 4,
+                              borderRadius: BorderRadius.circular(12),
+                              color: Theme.of(context).colorScheme.surface,
+                              child: Container(
+                                width: MediaQuery.of(context).size.width - 32,
+                                constraints: const BoxConstraints(maxHeight: 200),
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  itemCount: options.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    final String option = options.elementAt(index);
+                                    return ListTile(
+                                      title: Text(option),
+                                      onTap: () => onSelected(option),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ],
+                      loading: () => const LinearProgressIndicator(),
+                      error: (err, _) => Text('Error: $err'),
+                    ),
+                  const SizedBox(height: 16),
+
+                  // Budget
+                  TextFormField(
+                    controller: _budgetController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: '0.00',
+                      labelText: 'Budget (R)',
+                      prefixText: 'R ',
+                      prefixStyle: TextStyle(color: AppColors.primary),
+                    ),
+                    validator: Validators.budget,
                   ),
                   const SizedBox(height: 16),
 
@@ -485,10 +536,13 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     final isSelected = _jobType == type;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() {
-          _jobType = type;
-          if (type == 'digital') _selectedLocation = null;
-        }),
+        onTap: () {
+           setState(() {
+            _jobType = type;
+            _selectedCategory = null; // Reset category when switching type
+            if (type == 'digital') _selectedLocation = null;
+          });
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
