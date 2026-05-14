@@ -3,35 +3,32 @@ import 'package:flutter/material.dart';
 /// Application Color Palette
 /// Dark mode first design with yellow, black, and white colors
 class AppColors {
-  // Background Colors
-  static const Color darkBg = Color(0xFF0F0F0F); // Near black background
-  static const Color surface = Color(0xFF1A1A1A); // Slightly lighter surface
-  static const Color surfaceAlt = Color(0xFF242424); // Alternative surface
-
-  // Primary & Accent Colors
+  // Brand Colors (Consistent across themes)
   static const Color primary = Color(0xFFFFD700); // Yellow (main accent)
   static const Color primaryDark = Color(0xFFE6B800);
   static const Color primaryLight = Color(0xFFFFF44F);
-
-  // Light Theme Colors (Blue and White)
-  static const Color lightPrimary = Color(0xFF2196F3); // Blue
-  static const Color lightPrimaryDark = Color(0xFF1976D2);
-  static const Color lightPrimaryLight = Color(0xFFBBDEFB);
-  static const Color lightBg = Color(0xFFF5F5F5); // Off-white background
-  static const Color lightSurface = Color(0xFFFFFFFF); // White surface
-  static const Color lightTextPrimary = Color(0xFF212121); // Dark gray/black text
-  static const Color lightTextSecondary = Color(0xFF757575); // Medium gray text
-  static const Color lightBorder = Color(0xFFE0E0E0); // Light gray border
-
-  // Secondary Colors
   static const Color secondary = Color(0xFF00BCD4); // Complementary cyan
   static const Color secondaryDark = Color(0xFF0097A7);
 
-  // Text Colors
+  // Dark Theme Colors
+  static const Color darkBg = Color(0xFF0F0F0F); // Near black background
+  static const Color surface = Color(0xFF1A1A1A); // Slightly lighter surface
+  static const Color surfaceAlt = Color(0xFF242424); // Alternative surface
   static const Color textPrimary = Color(0xFFFFFFFF); // White
   static const Color textSecondary = Color(0xFFB3B3B3); // Light gray
   static const Color textTertiary = Color(0xFF808080); // Medium gray
-  static const Color textDisabled = Color(0xFF4D4D4D); // Darker gray
+  static const Color borderColor = Color(0xFF333333);
+  static const Color dividerColor = Color(0xFF2A2A2A);
+
+  // Light Theme Colors
+  static const Color lightBg = Color(0xFFF8F9FA); // Off-white background
+  static const Color lightSurface = Color(0xFFFFFFFF); // Pure white surface
+  static const Color lightSurfaceAlt = Color(0xFFF1F3F5); // Slightly darker white
+  static const Color lightTextPrimary = Color(0xFF1A1A1A); // Near black text
+  static const Color lightTextSecondary = Color(0xFF4A4A4A); // Dark gray text
+  static const Color lightTextTertiary = Color(0xFF717171); // Gray text
+  static const Color lightBorder = Color(0xFFDEE2E6); // Light gray border
+  static const Color lightDivider = Color(0xFFE9ECEF);
 
   // Status Colors
   static const Color success = Color(0xFF4CAF50);
@@ -43,10 +40,6 @@ class AppColors {
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color transparent = Colors.transparent;
-
-  // Border & Divider Colors
-  static const Color borderColor = Color(0xFF333333);
-  static const Color dividerColor = Color(0xFF2A2A2A);
 
   // Shadow Colors
   static const Color shadow = Color(0x29000000);

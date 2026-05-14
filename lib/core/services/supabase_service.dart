@@ -69,7 +69,7 @@ class SupabaseService {
     try {
       final response = await client.auth.signInWithOAuth(
         supabase.Provider.google,
-        redirectTo: 'io.supabase.flutter://callback',
+        redirectTo: 'illdoit://login-callback/',
       );
       return response;
     } on AuthException catch (e) {

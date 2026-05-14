@@ -25,12 +25,13 @@
             </intent-filter>
 
             <!-- Supabase Deep Linking Intent Filter -->
-            <intent-filter android:label="flutter_getx_auth">
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- This matches the redirectTo URL in SupabaseService.dart -->
-                <data android:scheme="io.supabase.flutter" android:host="callback" />
+                <data
+                    android:scheme="illdoit"
+                    android:host="login-callback" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
@@ -38,6 +39,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="flutter_deeplinking_enabled"
+            android:value="true" />
         <!-- CRITICAL FIX: Disable Impeller to prevent keyboard-triggered GPU crash.
              Flutter 3.41.x Impeller has a known crash on many Android devices when
              the soft keyboard appears (surface resize triggers GPU pipeline failure).
