@@ -146,14 +146,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Sign in with Email OTP
+  Future<void> signInWithEmailOtp({required String email}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _supabaseService.signInWithEmailOtp(email: email);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    }
+  }
+
   /// Verify OTP
   Future<void> verifyOTP({
-    required String phone,
+    String? phone,
+    String? email,
     required String token,
+    required supabase.OtpType type,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      await _supabaseService.verifyOTP(phone: phone, token: token);
+      await _supabaseService.verifyOTP(
+        phone: phone,
+        email: email,
+        token: token,
+        type: type,
+      );
       
       // Ensure profile exists immediately
       await _ref.read(userRepositoryProvider).ensureProfileExists();

@@ -46,6 +46,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _handleEmailOtp() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email')),
+      );
+      return;
+    }
+
+    await ref.read(authProvider.notifier).signInWithEmailOtp(email: email);
+    
+    if (mounted && ref.read(authProvider).errorMessage == null) {
+      context.push(
+        AppRoutes.otpVerify,
+        extra: {
+          'identifier': email,
+          'isEmail': true,
+        },
+      );
+    }
+  }
+
   Future<void> _launchTerms() async {
     final Uri url = Uri.parse('https://illdoit.space/termsandconditions');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -250,7 +272,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               : () => ref.read(authProvider.notifier).signInWithGoogle(),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _SocialButton(
+                          icon: Icons.email_outlined,
+                          label: 'Email',
+                          onPressed: isLoading ? null : _handleEmailOtp,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: _SocialButton(
                           icon: Icons.phone_android_rounded,
@@ -261,8 +291,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 32),
+                  ),                  const SizedBox(height: 32),
 
                   // Sign Up Link
                   GestureDetector(

@@ -156,8 +156,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.otpVerify,
         builder: (context, state) {
-          final phone = state.extra as String? ?? '';
-          return OtpVerificationScreen(phoneNumber: phone);
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final identifier = extra['identifier'] as String? ?? '';
+          final isEmail = extra['isEmail'] as bool? ?? false;
+          return OtpVerificationScreen(
+            identifier: identifier,
+            isEmail: isEmail,
+          );
         },
       ),
       GoRoute(

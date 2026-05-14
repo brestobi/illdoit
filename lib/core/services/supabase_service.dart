@@ -112,16 +112,30 @@ class SupabaseService {
     }
   }
 
+  /// Sign in with OTP (Email)
+  Future<void> signInWithEmailOtp({required String email}) async {
+    try {
+      await client.auth.signInWithOtp(email: email);
+    } on AuthException catch (e) {
+      throw AuthenticationException(e.message);
+    } catch (e) {
+      throw ServerException('Email OTP sign in failed: $e');
+    }
+  }
+
   /// Verify OTP
   Future<User> verifyOTP({
-    required String phone,
+    String? phone,
+    String? email,
     required String token,
+    required OtpType type,
   }) async {
     try {
       final response = await client.auth.verifyOTP(
         phone: phone,
+        email: email,
         token: token,
-        type: OtpType.sms,
+        type: type,
       );
       return response.user!;
     } on AuthException catch (e) {

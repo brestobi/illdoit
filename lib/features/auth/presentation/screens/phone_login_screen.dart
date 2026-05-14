@@ -36,7 +36,13 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         await ref.read(authProvider.notifier).signInWithPhone(phone: phone);
         
         if (mounted && ref.read(authProvider).errorMessage == null) {
-          context.push(AppRoutes.otpVerify, extra: phone);
+          context.push(
+            AppRoutes.otpVerify,
+            extra: {
+              'identifier': phone,
+              'isEmail': false,
+            },
+          );
         }
       } catch (e) {
         if (mounted) {

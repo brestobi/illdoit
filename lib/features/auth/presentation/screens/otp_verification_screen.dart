@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/router/app_router.dart';
 import '../providers/auth_provider.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
-  final String phoneNumber;
+  final String identifier;
+  final bool isEmail;
 
   const OtpVerificationScreen({
     Key? key,
-    required this.phoneNumber,
+    required this.identifier,
+    this.isEmail = false,
   }) : super(key: key);
 
   @override
@@ -42,11 +44,23 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     }
 
     await ref.read(authProvider.notifier).verifyOTP(
-          phone: widget.phoneNumber,
+          phone: widget.isEmail ? null : widget.identifier,
+          email: widget.isEmail ? widget.identifier : null,
           token: otp,
+          type: widget.isEmail ? OtpType.email : OtpType.sms,
         );
-    
-    // Auth success is handled by authState listener in router/auth_provider
+  }
+
+  Future<void> _handleResendCode() async {
+    if (widget.isEmail) {
+      await ref.read(authProvider.notifier).signInWithEmailOtp(
+            email: widget.identifier,
+          );
+    } else {
+      await ref.read(authProvider.notifier).signInWithPhone(
+            phone: widget.identifier,
+          );
+    }
   }
 
   @override
@@ -58,7 +72,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage!)),
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: AppColors.error,
+          ),
         );
         ref.read(authProvider.notifier).clearError();
       }
@@ -83,20 +100,21 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               const Text(
                 'Verify Code',
                 style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
+                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter the 6-digit code sent to ${widget.phoneNumber}',
+                'Enter the 6-digit code sent to ${widget.identifier}',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 16,
                   color: AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               // OTP Field
               TextField(
@@ -107,34 +125,54 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontSize: 24,
-                  letterSpacing: 8,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                  letterSpacing: 12,
+                  fontWeight: FontWeight.w800,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: '000000',
                   counterText: '',
-                  prefixIcon: null,
+                  hintStyle: TextStyle(
+                    color: AppColors.textTertiary.withOpacity(0.3),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 24),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               // Verify Button
               SizedBox(
                 width: double.infinity,
-                height: 48,
+                height: 56,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _handleVerifyOtp,
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
                   child: isLoading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                          height: 24,
+                          width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: AppColors.darkBg,
                           ),
                         )
-                      : const Text('Verify & Sign In'),
+                      : const Text(
+                          'Verify & Sign In',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -142,17 +180,24 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               // Resend Code
               Center(
                 child: TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () => ref.read(authProvider.notifier).signInWithPhone(
-                            phone: widget.phoneNumber,
+                  onPressed: isLoading ? null : _handleResendCode,
+                  child: RichText(
+                    text: TextSpan(
+                      text: "Didn't receive a code? ",
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Resend',
+                          style: TextStyle(
+                            color: isLoading ? AppColors.textTertiary : AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
                           ),
-                  child: const Text(
-                    'Resend Code',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                        ),
+                      ],
                     ),
                   ),
                 ),
