@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../../core/utils/validators.dart';
 import '../providers/profile_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -193,21 +194,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       labelText: 'Display Name',
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.primary),
-                      ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a display name';
-                      }
-                      return null;
-                    },
+                    validator: (value) => Validators.required(value, 'Display name'),
                   ),
                   const SizedBox(height: 20),
 
@@ -218,14 +206,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       labelText: 'Bio',
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.primary),
-                      ),
                       alignLabelWithHint: true,
                     ),
                   ),
@@ -238,15 +218,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     dropdownColor: AppColors.surface,
                     decoration: const InputDecoration(
                       labelText: 'Location (Province)',
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.primary),
-                      ),
-                      prefixIcon: Icon(Icons.location_on_outlined, color: AppColors.textSecondary),
+                      prefixIcon: Icon(Icons.location_on_outlined),
                     ),
                     items: AppStrings.provinces.map((String province) {
                       return DropdownMenuItem<String>(
@@ -259,12 +231,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         _selectedProvince = newValue;
                       });
                     },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a province';
-                      }
-                      return null;
-                    },
+                    validator: (value) => Validators.required(value, 'Province'),
                   ),
                   const SizedBox(height: 20),
 
@@ -274,17 +241,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       labelText: 'Skills (comma separated)',
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.primary),
-                      ),
-                      prefixIcon: Icon(Icons.bolt_outlined, color: AppColors.textSecondary),
+                      prefixIcon: Icon(Icons.bolt_outlined),
                       hintText: 'e.g. Design, Flutter, Tutoring',
-                      hintStyle: TextStyle(color: AppColors.textSecondary),
                     ),
                   ),
                 ],

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../../core/utils/validators.dart';
 import '../providers/profile_provider.dart';
 
 class IdVerificationScreen extends ConsumerStatefulWidget {
@@ -16,7 +17,8 @@ class IdVerificationScreen extends ConsumerStatefulWidget {
 
 class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   final PageController _pageController = PageController();
-  final _formKey = GlobalKey<FormState>();
+  final _personalFormKey = GlobalKey<FormState>();
+  final _bankFormKey = GlobalKey<FormState>();
   int _currentStep = 0;
   
   // Personal Details
@@ -76,10 +78,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
 
   void _nextPage() {
     if (_currentStep == 0) {
-      if (_nameController.text.isEmpty || _idNumController.text.isEmpty || _addressController.text.isEmpty || _phoneController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all personal details')));
-        return;
-      }
+      if (!_personalFormKey.currentState!.validate()) return;
     }
 
     if (_currentStep == 1 && _selectedIdType == null) {
@@ -104,10 +103,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     }
 
     if (_currentStep == 4) {
-      if (_bankNameController.text.isEmpty || _accNumController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill bank account details')));
-        return;
-      }
+      if (!_bankFormKey.currentState!.validate()) return;
     }
 
     if (_currentStep < _totalSteps - 1) {
@@ -337,6 +333,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Form(
+        key: _personalFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -348,12 +345,14 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Full Real Name', hintText: 'e.g. John Doe'),
               style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => Validators.required(value, 'Full name'),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _idNumController,
               decoration: const InputDecoration(labelText: 'ID / Passport Number'),
               style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => Validators.required(value, 'ID number'),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -361,6 +360,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               decoration: const InputDecoration(labelText: 'Cell Phone Number'),
               keyboardType: TextInputType.phone,
               style: const TextStyle(color: AppColors.textPrimary),
+              validator: Validators.phone,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -368,6 +368,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               decoration: const InputDecoration(labelText: 'Residential Address'),
               maxLines: 2,
               style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => Validators.required(value, 'Address'),
             ),
             const SizedBox(height: 32),
           ],
@@ -379,40 +380,46 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   Widget _buildBankDetailsStep() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStepHeader(
-            'Banking Details', 
-            'Where should we send your earnings? Please ensure the account belongs to you.'
-          ),
-          TextFormField(
-            controller: _bankNameController,
-            decoration: const InputDecoration(labelText: 'Bank Name', hintText: 'e.g. FNB, Standard Bank'),
-            style: const TextStyle(color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _accNumController,
-            decoration: const InputDecoration(labelText: 'Account Number'),
-            keyboardType: TextInputType.number,
-            style: const TextStyle(color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _accTypeController,
-            decoration: const InputDecoration(labelText: 'Account Type', hintText: 'e.g. Savings, Cheque'),
-            style: const TextStyle(color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _branchController,
-            decoration: const InputDecoration(labelText: 'Branch Code (Optional)'),
-            keyboardType: TextInputType.number,
-            style: const TextStyle(color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 32),
-        ],
+      child: Form(
+        key: _bankFormKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildStepHeader(
+              'Banking Details', 
+              'Where should we send your earnings? Please ensure the account belongs to you.'
+            ),
+            TextFormField(
+              controller: _bankNameController,
+              decoration: const InputDecoration(labelText: 'Bank Name', hintText: 'e.g. FNB, Standard Bank'),
+              style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => Validators.required(value, 'Bank name'),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _accNumController,
+              decoration: const InputDecoration(labelText: 'Account Number'),
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => Validators.required(value, 'Account number'),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _accTypeController,
+              decoration: const InputDecoration(labelText: 'Account Type', hintText: 'e.g. Savings, Cheque'),
+              style: const TextStyle(color: AppColors.textPrimary),
+              validator: (value) => Validators.required(value, 'Account type'),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _branchController,
+              decoration: const InputDecoration(labelText: 'Branch Code (Optional)'),
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

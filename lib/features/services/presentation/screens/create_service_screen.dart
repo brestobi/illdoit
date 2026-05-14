@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../core/utils/validators.dart';
 import '../providers/services_provider.dart';
 
 class CreateServiceScreen extends ConsumerStatefulWidget {
@@ -81,6 +82,13 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
 
   Future<void> _handleSave() async {
     if (_formKey.currentState!.validate()) {
+      if (_images.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please add at least one image')),
+        );
+        return;
+      }
+
       final currentUser = ref.read(supabaseServiceProvider).currentUser;
       if (currentUser == null) return;
 
@@ -243,8 +251,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                   hintText: 'e.g., I will design a professional logo',
                   labelText: 'Service Title',
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter a title' : null,
+                validator: Validators.title,
               ),
               const SizedBox(height: 16),
 
@@ -257,8 +264,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                   hintText: 'Describe what you offer in detail...',
                   labelText: 'Description',
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter a description' : null,
+                validator: Validators.description,
               ),
               const SizedBox(height: 16),
 
@@ -297,10 +303,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                         prefixText: 'R ',
                         prefixStyle: TextStyle(color: AppColors.primary),
                       ),
-                      validator: (value) =>
-                          value == null || double.tryParse(value) == null
-                              ? 'Invalid price'
-                              : null,
+                      validator: Validators.budget,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -313,10 +316,12 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                         hintText: '3',
                         labelText: 'Delivery (Days)',
                       ),
-                      validator: (value) =>
-                          value == null || int.tryParse(value) == null
-                              ? 'Invalid days'
-                              : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Required';
+                        final days = int.tryParse(value);
+                        if (days == null || days <= 0) return 'Invalid';
+                        return null;
+                      },
                     ),
                   ),
                 ],

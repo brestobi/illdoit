@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/transaction.dart';
+import '../../../../core/models/withdrawal_request.dart';
 import '../../../../core/repositories/transaction_repository_impl.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/payment_service.dart';

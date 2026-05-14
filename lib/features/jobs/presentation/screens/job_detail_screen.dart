@@ -666,7 +666,7 @@ class _ClientCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                context.push(AppRoutes.publicProfile.replaceFirst(':id', job.clientId));
+                context.push(AppRoutes.publicProfile.replaceFirst(':id', userId));
               },
               child: const Text('View Profile'),
             ),

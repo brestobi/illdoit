@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -13,6 +14,7 @@ class SignupScreen extends ConsumerStatefulWidget {
 }
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
@@ -40,27 +42,20 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
-      return;
-    }
-
-    await ref.read(authProvider.notifier).signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          fullName: _nameController.text.trim(),
+    if (_formKey.currentState!.validate()) {
+      if (!_agreeToTerms) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please agree to the Terms & Conditions')),
         );
+        return;
+      }
+
+      await ref.read(authProvider.notifier).signUp(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+            fullName: _nameController.text.trim(),
+          );
+    }
   }
 
   @override
@@ -72,14 +67,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage!)),
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: AppColors.error,
+          ),
         );
         ref.read(authProvider.notifier).clearError();
       } else if (previous?.isLoading == true && next.isLoading == false && next.isAuthenticated) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created!')),
+          const SnackBar(
+            content: Text('Account created successfully!'),
+            backgroundColor: AppColors.success,
+          ),
         );
-        // The router will automatically redirect to home because isAuthenticated is true
       }
     });
 
@@ -88,189 +88,218 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              // Header
-              const Text(
-                'Get Started',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                // Header
+                const Text(
+                  'Get Started',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Create your account to find work',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
+                const SizedBox(height: 8),
+                const Text(
+                  'Create your account to start earning',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 32),
 
-              // Name Field
-              TextField(
-                controller: _nameController,
-                enabled: !isLoading,
-                decoration: const InputDecoration(
-                  hintText: 'Full name',
-                  prefixIcon: Icon(Icons.person_outline),
-                  prefixIconColor: AppColors.textSecondary,
+                // Name Field
+                TextFormField(
+                  controller: _nameController,
+                  enabled: !isLoading,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: 'Full name',
+                    prefixIcon: Icon(Icons.person_outline_rounded),
+                  ),
+                  validator: (value) => Validators.required(value, 'Full name'),
+                  textCapitalization: TextCapitalization.words,
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Email Field
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                enabled: !isLoading,
-                decoration: const InputDecoration(
-                  hintText: 'Email address',
-                  prefixIcon: Icon(Icons.email_outlined),
-                  prefixIconColor: AppColors.textSecondary,
+                // Email Field
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  enabled: !isLoading,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: 'Email address',
+                    prefixIcon: Icon(Icons.alternate_email_rounded),
+                  ),
+                  validator: Validators.email,
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Password Field
-              TextField(
-                controller: _passwordController,
-                obscureText: _isObscured,
-                enabled: !isLoading,
-                decoration: InputDecoration(
-                  hintText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  prefixIconColor: AppColors.textSecondary,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isObscured ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.textSecondary,
+                // Password Field
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _isObscured,
+                  enabled: !isLoading,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isObscured ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isObscured = !_isObscured;
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isObscured = !_isObscured;
-                      });
-                    },
                   ),
+                  validator: Validators.password,
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Confirm Password Field
-              TextField(
-                controller: _confirmPasswordController,
-                obscureText: _isObscuredConfirm,
-                enabled: !isLoading,
-                decoration: InputDecoration(
-                  hintText: 'Confirm password',
-                  prefixIcon: const Icon(Icons.lock_outlined),
-                  prefixIconColor: AppColors.textSecondary,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isObscuredConfirm
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: AppColors.textSecondary,
+                // Confirm Password Field
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _isObscuredConfirm,
+                  enabled: !isLoading,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Confirm password',
+                    prefixIcon: const Icon(Icons.lock_outline_rounded),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isObscuredConfirm
+                            ? Icons.visibility_off_rounded
+                            : Icons.visibility_rounded,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isObscuredConfirm = !_isObscuredConfirm;
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isObscuredConfirm = !_isObscuredConfirm;
-                      });
-                    },
+                  ),
+                  validator: (value) => Validators.confirmPassword(value, _passwordController.text),
+                ),
+                const SizedBox(height: 24),
+
+                // Terms & Conditions
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: _agreeToTerms,
+                        onChanged: isLoading ? null : (value) {
+                          setState(() {
+                            _agreeToTerms = value ?? false;
+                          });
+                        },
+                        activeColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: RichText(
+                        text: const TextSpan(
+                          text: 'I agree to the ',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Terms & Conditions',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                // Sign Up Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _handleSignup,
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.darkBg,
+                            ),
+                          )
+                        : const Text(
+                            'Create Account',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Terms & Conditions
-              Row(
-                children: [
-                  Checkbox(
-                    value: _agreeToTerms,
-                    onChanged: isLoading ? null : (value) {
-                      setState(() {
-                        _agreeToTerms = value ?? false;
-                      });
-                    },
-                    activeColor: AppColors.primary,
-                  ),
-                  Expanded(
+                // Login Link
+                Center(
+                  child: GestureDetector(
+                    onTap: isLoading ? null : () => context.go(AppRoutes.login),
                     child: RichText(
                       text: const TextSpan(
-                        text: 'I agree to the ',
+                        text: 'Already have an account? ',
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 14,
                         ),
                         children: [
                           TextSpan(
-                            text: 'Terms & Conditions',
+                            text: 'Sign In',
                             style: TextStyle(
                               color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Sign Up Button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: (_agreeToTerms && !isLoading) ? _handleSignup : null,
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Create Account'),
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // Login Link
-              Center(
-                child: GestureDetector(
-                  onTap: isLoading ? null : () => context.go(AppRoutes.login),
-                  child: RichText(
-                    text: const TextSpan(
-                      text: 'Already have an account? ',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Sign In',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-

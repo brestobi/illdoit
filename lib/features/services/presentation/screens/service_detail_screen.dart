@@ -302,7 +302,7 @@ class _SellerCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                context.push(AppRoutes.publicProfile.replaceFirst(':id', service.userId));
+                context.push(AppRoutes.publicProfile.replaceFirst(':id', userId));
               },
               child: const Text('View Profile'),
             ),

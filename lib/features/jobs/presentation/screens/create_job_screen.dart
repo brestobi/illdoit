@@ -8,7 +8,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/services/supabase_service.dart';
-import '../../profile/presentation/providers/profile_provider.dart';
+import '../../../../core/utils/validators.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/jobs_provider.dart';
 
 class CreateJobScreen extends ConsumerStatefulWidget {
@@ -240,257 +241,252 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-              const Text(
-                'Job Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 16),
+                  const Text(
+                    'Job Details',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
-              // Job Type
-              const Text(
-                'Job Type',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  _buildTypeChoice('digital', Icons.computer, 'Digital'),
-                  const SizedBox(width: 12),
-                  _buildTypeChoice('physical', Icons.hail, 'Physical'),
-                ],
-              ),
-              const SizedBox(height: 24),
+                  // Job Type
+                  const Text(
+                    'Job Type',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _buildTypeChoice('digital', Icons.computer, 'Digital'),
+                      const SizedBox(width: 12),
+                      _buildTypeChoice('physical', Icons.hail, 'Physical'),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-              // Title
-              TextFormField(
-                controller: _titleController,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'e.g., Need a website for my bakery',
-                  labelText: 'Job Title',
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter a title' : null,
-              ),
-              const SizedBox(height: 16),
+                  // Title
+                  TextFormField(
+                    controller: _titleController,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      hintText: 'e.g., Need a website for my bakery',
+                      labelText: 'Job Title',
+                    ),
+                    validator: Validators.title,
+                  ),
+                  const SizedBox(height: 16),
 
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 5,
-                style: const TextStyle(color: AppColors.textPrimary),
-                decoration: const InputDecoration(
-                  hintText: 'Describe the job requirements in detail...',
-                  labelText: 'Description',
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter a description' : null,
-              ),
-              const SizedBox(height: 16),
+                  // Description
+                  TextFormField(
+                    controller: _descriptionController,
+                    maxLines: 5,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      hintText: 'Describe the job requirements in detail...',
+                      labelText: 'Description',
+                    ),
+                    validator: Validators.description,
+                  ),
+                  const SizedBox(height: 16),
 
-              // Category & Budget
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedCategory,
+                  // Category & Budget
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedCategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Category',
+                          ),
+                          dropdownColor: AppColors.surface,
+                          items: _categories.map((cat) {
+                            return DropdownMenuItem(
+                              value: cat,
+                              child: Text(cat, style: const TextStyle(color: AppColors.textPrimary)),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _selectedCategory = value);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _budgetController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(color: AppColors.textPrimary),
+                          decoration: const InputDecoration(
+                            hintText: '0.00',
+                            labelText: 'Budget (R)',
+                            prefixText: 'R ',
+                            prefixStyle: TextStyle(color: AppColors.primary),
+                          ),
+                          validator: Validators.budget,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Location
+                  if (_jobType == 'physical') ...[
+                    DropdownButtonFormField<String>(
+                      value: _selectedLocation == 'Remote' ? _locations[1] : _selectedLocation,
                       decoration: const InputDecoration(
-                        labelText: 'Category',
+                        labelText: 'Job Location',
+                        prefixIcon: Icon(Icons.location_on_outlined, size: 20),
                       ),
                       dropdownColor: AppColors.surface,
-                      items: _categories.map((cat) {
+                      items: _locations.where((l) => l != 'Remote').map((loc) {
                         return DropdownMenuItem(
-                          value: cat,
-                          child: Text(cat, style: const TextStyle(color: AppColors.textPrimary)),
+                          value: loc,
+                          child: Text(loc, style: const TextStyle(color: AppColors.textPrimary)),
                         );
                       }).toList(),
                       onChanged: (value) {
                         if (value != null) {
-                          setState(() => _selectedCategory = value);
+                          setState(() => _selectedLocation = value);
                         }
                       },
+                      validator: (value) => _jobType == 'physical' && (value == null || value == 'Remote') ? 'Location is required for physical jobs' : null,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Deadline
+                  GestureDetector(
+                    onTap: _selectDeadline,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.borderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Deadline',
+                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                              ),
+                              Text(
+                                DateFormat('MMM dd, yyyy').format(_selectedDeadline),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _budgetController,
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(
-                        hintText: '0.00',
-                        labelText: 'Budget (R)',
-                        prefixText: 'R ',
-                        prefixStyle: TextStyle(color: AppColors.primary),
-                      ),
-                      validator: (value) =>
-                          value == null || double.tryParse(value) == null
-                              ? 'Invalid amount'
-                              : null,
+                  const SizedBox(height: 24),
+
+                  // Images
+                  const Text(
+                    'Job Images (Optional)',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 100,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        ..._images.map((item) {
+                          final DecorationImage image;
+                          if (item is String) {
+                            image = DecorationImage(image: NetworkImage(item), fit: BoxFit.cover);
+                          } else {
+                            image = DecorationImage(image: FileImage(item), fit: BoxFit.cover);
+                          }
+
+                          return Container(
+                            width: 100,
+                            height: 100,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              image: image,
+                            ),
+                            child: Align(
+                              alignment: Alignment.topRight,
+                              child: IconButton(
+                                icon: const Icon(Icons.close, color: Colors.white),
+                                onPressed: () {
+                                  setState(() {
+                                    _images.remove(item);
+                                  });
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                        if (_images.length < 3)
+                          GestureDetector(
+                            onTap: _pickImage,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.borderColor),
+                              ),
+                              child: const Icon(
+                                Icons.add_a_photo_outlined,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Post Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: state.isLoading ? null : _handleSave,
+                      child: state.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(isEditing ? 'Save Changes' : 'Post Job'),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Location
-              if (_jobType == 'physical') ...[
-                DropdownButtonFormField<String>(
-                  value: _selectedLocation == 'Remote' ? _locations[1] : _selectedLocation,
-                  decoration: const InputDecoration(
-                    labelText: 'Job Location',
-                    prefixIcon: Icon(Icons.location_on_outlined, size: 20),
-                  ),
-                  dropdownColor: AppColors.surface,
-                  items: _locations.where((l) => l != 'Remote').map((loc) {
-                    return DropdownMenuItem(
-                      value: loc,
-                      child: Text(loc, style: const TextStyle(color: AppColors.textPrimary)),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedLocation = value);
-                    }
-                  },
-                  validator: (value) => _jobType == 'physical' && (value == null || value == 'Remote') ? 'Location is required for physical jobs' : null,
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Deadline
-              GestureDetector(
-                onTap: _selectDeadline,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.borderColor),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Deadline',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                          ),
-                          Text(
-                            DateFormat('MMM dd, yyyy').format(_selectedDeadline),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Images
-              const Text(
-                'Job Images (Optional)',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 100,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    ..._images.map((item) {
-                      final DecorationImage image;
-                      if (item is String) {
-                        image = DecorationImage(image: NetworkImage(item), fit: BoxFit.cover);
-                      } else {
-                        image = DecorationImage(image: FileImage(item), fit: BoxFit.cover);
-                      }
-
-                      return Container(
-                        width: 100,
-                        height: 100,
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: image,
-                        ),
-                        child: Align(
-                          alignment: Alignment.topRight,
-                          child: IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white),
-                            onPressed: () {
-                              setState(() {
-                                _images.remove(item);
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    }),
-                    if (_images.length < 3)
-                      GestureDetector(
-                        onTap: _pickImage,
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.borderColor),
-                          ),
-                          child: const Icon(
-                            Icons.add_a_photo_outlined,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Post Button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: state.isLoading ? null : _handleSave,
-                  child: state.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(isEditing ? 'Save Changes' : 'Post Job'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-    loading: () => const Center(child: CircularProgressIndicator()),
-    error: (e, s) => Center(child: Text('Error: $e')),
-    ),
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Center(child: Text('Error: $e')),
+      ),
     );
   }
 
