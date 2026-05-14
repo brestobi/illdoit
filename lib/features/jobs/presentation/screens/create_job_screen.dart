@@ -9,6 +9,7 @@ import '../../../../core/models/job.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../core/repositories/location_repository.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/jobs_provider.dart';
 
@@ -31,7 +32,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   late TextEditingController _budgetController;
   late DateTime _selectedDeadline;
   late String _selectedCategory;
-  late String _selectedLocation;
+  String? _selectedLocation;
   late String _jobType;
   final List<dynamic> _images = [];
 
@@ -47,15 +48,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     'Support',
   ];
 
-  final List<String> _locations = [
-    'Remote',
-    'Cape Town',
-    'Johannesburg',
-    'Durban',
-    'Pretoria',
-    'Port Elizabeth',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -66,7 +58,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     _selectedDeadline = job?.deadline ?? DateTime.now().add(const Duration(days: 7));
     _selectedCategory = job?.category ?? 'Design';
     _jobType = job?.jobType ?? 'digital';
-    _selectedLocation = job?.location ?? 'Remote';
+    _selectedLocation = job?.location;
     if (job != null) {
       _images.addAll(job.images);
     }
@@ -89,11 +81,11 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
               onPrimary: AppColors.darkBg,
-              surface: AppColors.surface,
-              onSurface: AppColors.textPrimary,
+              surface: Theme.of(context).brightness == Brightness.dark ? AppColors.surface : Colors.white,
+              onSurface: Theme.of(context).brightness == Brightness.dark ? AppColors.textPrimary : Colors.black,
             ),
           ),
           child: child!,
@@ -174,6 +166,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(jobNotifierProvider);
     final profileAsync = ref.watch(profileProvider);
+    final locationsAsync = ref.watch(locationsProvider);
     final isEditing = widget.job != null;
 
     ref.listen<JobState>(jobNotifierProvider, (previous, next) {
@@ -191,7 +184,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Job' : 'Post a Job'),
         elevation: 0,
@@ -211,7 +204,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                     const SizedBox(height: 24),
                     const Text(
                       'Verification Required',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -246,7 +239,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -254,7 +246,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                   // Job Type
                   const Text(
                     'Job Type',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -269,7 +261,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                   // Title
                   TextFormField(
                     controller: _titleController,
-                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       hintText: 'e.g., Need a website for my bakery',
                       labelText: 'Job Title',
@@ -282,7 +273,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                   TextFormField(
                     controller: _descriptionController,
                     maxLines: 5,
-                    style: const TextStyle(color: AppColors.textPrimary),
                     decoration: const InputDecoration(
                       hintText: 'Describe the job requirements in detail...',
                       labelText: 'Description',
@@ -300,11 +290,11 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                           decoration: const InputDecoration(
                             labelText: 'Category',
                           ),
-                          dropdownColor: AppColors.surface,
+                          dropdownColor: Theme.of(context).colorScheme.surface,
                           items: _categories.map((cat) {
                             return DropdownMenuItem(
                               value: cat,
-                              child: Text(cat, style: const TextStyle(color: AppColors.textPrimary)),
+                              child: Text(cat),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -319,7 +309,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                         child: TextFormField(
                           controller: _budgetController,
                           keyboardType: TextInputType.number,
-                          style: const TextStyle(color: AppColors.textPrimary),
                           decoration: const InputDecoration(
                             hintText: '0.00',
                             labelText: 'Budget (R)',
@@ -335,25 +324,29 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
 
                   // Location
                   if (_jobType == 'physical') ...[
-                    DropdownButtonFormField<String>(
-                      value: _selectedLocation == 'Remote' ? _locations[1] : _selectedLocation,
-                      decoration: const InputDecoration(
-                        labelText: 'Job Location',
-                        prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                    locationsAsync.when(
+                      data: (locations) => DropdownButtonFormField<String>(
+                        value: _selectedLocation,
+                        decoration: const InputDecoration(
+                          labelText: 'Job Location (City)',
+                          prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                        ),
+                        dropdownColor: Theme.of(context).colorScheme.surface,
+                        items: locations.map((loc) {
+                          return DropdownMenuItem(
+                            value: loc.name,
+                            child: Text(loc.name),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _selectedLocation = value);
+                          }
+                        },
+                        validator: (value) => _jobType == 'physical' && value == null ? 'Location is required for physical jobs' : null,
                       ),
-                      dropdownColor: AppColors.surface,
-                      items: _locations.where((l) => l != 'Remote').map((loc) {
-                        return DropdownMenuItem(
-                          value: loc,
-                          child: Text(loc, style: const TextStyle(color: AppColors.textPrimary)),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _selectedLocation = value);
-                        }
-                      },
-                      validator: (value) => _jobType == 'physical' && (value == null || value == 'Remote') ? 'Location is required for physical jobs' : null,
+                      loading: () => const LinearProgressIndicator(),
+                      error: (err, _) => Text('Error loading cities: $err'),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -364,9 +357,9 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.borderColor),
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
                       ),
                       child: Row(
                         children: [
@@ -384,7 +377,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -401,7 +393,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -423,7 +414,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                             height: 100,
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                               image: image,
                             ),
                             child: Align(
@@ -446,9 +437,9 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                               width: 100,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.borderColor),
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
                               ),
                               child: const Icon(
                                 Icons.add_a_photo_outlined,
@@ -464,7 +455,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                   // Post Button
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
+                    height: 56,
                     child: ElevatedButton(
                       onPressed: state.isLoading ? null : _handleSave,
                       child: state.isLoading
@@ -496,15 +487,15 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
       child: GestureDetector(
         onTap: () => setState(() {
           _jobType = type;
-          if (type == 'digital') _selectedLocation = 'Remote';
+          if (type == 'digital') _selectedLocation = null;
         }),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
-            borderRadius: BorderRadius.circular(10),
+            color: isSelected ? AppColors.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.borderColor,
+              color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline.withOpacity(0.5),
             ),
           ),
           child: Row(

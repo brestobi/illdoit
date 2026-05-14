@@ -8,6 +8,7 @@ import '../../../../core/models/service.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/models/user.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../core/repositories/location_repository.dart';
 import '../providers/explore_provider.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -42,6 +43,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   Widget build(BuildContext context) {
     final searchType = ref.watch(searchTypeProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
+    final locationsAsync = ref.watch(locationsProvider);
     final resultsAsync = searchType == SearchType.services
         ? ref.watch(exploreServicesProvider)
         : (searchType == SearchType.jobs
@@ -49,7 +51,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             : ref.watch(exploreUsersProvider));
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Explore'),
         elevation: 0,
@@ -67,7 +69,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               decoration: InputDecoration(
                 hintText: 'Search services or jobs...',
                 prefixIcon: const Icon(Icons.search),
-                prefixIconColor: AppColors.textSecondary,
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -95,29 +96,29 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
             // Location Filter (Only for Jobs)
             if (searchType == SearchType.jobs) ...[
-              DropdownButtonFormField<String>(
-                value: ref.watch(selectedLocationProvider),
-                decoration: InputDecoration(
-                  hintText: 'Filter by Location',
-                  prefixIcon: const Icon(Icons.location_on_outlined),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  suffixIcon: ref.watch(selectedLocationProvider) != null
-                      ? IconButton(
-                          icon: const Icon(Icons.clear, size: 18),
-                          onPressed: () => ref.read(selectedLocationProvider.notifier).state = null,
-                        )
-                      : null,
+              locationsAsync.when(
+                data: (locations) => DropdownButtonFormField<String>(
+                  value: ref.watch(selectedLocationProvider),
+                  decoration: InputDecoration(
+                    hintText: 'Filter by City',
+                    prefixIcon: const Icon(Icons.location_on_outlined),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    suffixIcon: ref.watch(selectedLocationProvider) != null
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () => ref.read(selectedLocationProvider.notifier).state = null,
+                          )
+                        : null,
+                  ),
+                  items: locations.map((loc) => DropdownMenuItem(
+                    value: loc.name,
+                    child: Text(loc.name),
+                  )).toList(),
+                  onChanged: (value) => ref.read(selectedLocationProvider.notifier).state = value,
+                  dropdownColor: Theme.of(context).colorScheme.surface,
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'Cape Town', child: Text('Cape Town')),
-                  DropdownMenuItem(value: 'Johannesburg', child: Text('Johannesburg')),
-                  DropdownMenuItem(value: 'Durban', child: Text('Durban')),
-                  DropdownMenuItem(value: 'Pretoria', child: Text('Pretoria')),
-                  DropdownMenuItem(value: 'Port Elizabeth', child: Text('Port Elizabeth')),
-                ],
-                onChanged: (value) => ref.read(selectedLocationProvider.notifier).state = value,
-                dropdownColor: AppColors.surface,
-                style: const TextStyle(color: AppColors.textPrimary),
+                loading: () => const LinearProgressIndicator(),
+                error: (err, _) => Text('Error loading cities: $err'),
               ),
               const SizedBox(height: 24),
             ],
@@ -131,7 +132,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 if (selectedCategory != null)
@@ -171,7 +171,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -207,10 +206,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.borderColor,
+            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline.withOpacity(0.5),
           ),
         ),
         child: Text(
@@ -218,7 +217,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? AppColors.darkBg : AppColors.textPrimary,
+            color: isSelected ? AppColors.darkBg : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),
@@ -230,10 +229,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       onTap: () => ref.read(selectedCategoryProvider.notifier).state = name,
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.borderColor,
+            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline.withOpacity(0.5),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -242,7 +241,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              color: isSelected ? AppColors.primary : AppColors.textTertiary,
             ),
             const SizedBox(height: 8),
             Text(
@@ -250,7 +249,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                color: isSelected ? AppColors.primary : Theme.of(context).textTheme.bodyMedium?.color,
               ),
               textAlign: TextAlign.center,
             ),
@@ -261,16 +260,16 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 32),
+        padding: const EdgeInsets.symmetric(vertical: 32),
         child: Column(
           children: [
-            Icon(Icons.search_off, size: 48, color: AppColors.textSecondary),
-            SizedBox(height: 16),
+            const Icon(Icons.search_off, size: 48, color: AppColors.textTertiary),
+            const SizedBox(height: 16),
             Text(
               'No results found. Try a different search.',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
             ),
           ],
         ),
@@ -285,9 +284,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderColor),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
         ),
         child: Row(
           children: [
@@ -326,15 +325,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     service.category,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                 ],
@@ -361,9 +359,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderColor),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
         ),
         child: Row(
           children: [
@@ -371,7 +369,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.2),
+                color: AppColors.primary.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.work_outline, color: AppColors.primary),
@@ -386,15 +384,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    job.category,
-                    style: const TextStyle(
+                    '${job.category}${job.location != null ? " • ${job.location}" : ""}',
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                 ],
@@ -421,9 +418,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderColor),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
         ),
         child: Row(
           children: [
@@ -449,7 +446,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       if (user.isVerified) ...[
@@ -463,9 +459,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     user.skills.isNotEmpty
                         ? user.skills.join(', ')
                         : 'No skills listed',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -485,7 +481,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -493,9 +488,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${user.completedJobs} jobs',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
               ],
