@@ -6,7 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/job.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../profile/presentation/providers/profile_provider.dart';
 import '../providers/jobs_provider.dart';
 
 class CreateJobScreen extends ConsumerStatefulWidget {
@@ -29,6 +31,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   late DateTime _selectedDeadline;
   late String _selectedCategory;
   late String _selectedLocation;
+  late String _jobType;
   final List<dynamic> _images = [];
 
   final List<String> _categories = [
@@ -61,7 +64,8 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     _budgetController = TextEditingController(text: job?.budget.toString() ?? '');
     _selectedDeadline = job?.deadline ?? DateTime.now().add(const Duration(days: 7));
     _selectedCategory = job?.category ?? 'Design';
-    _selectedLocation = 'Remote'; // Default
+    _jobType = job?.jobType ?? 'digital';
+    _selectedLocation = job?.location ?? 'Remote';
     if (job != null) {
       _images.addAll(job.images);
     }
@@ -139,6 +143,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
 
         final data = {
           'client_id': currentUser.id,
+          'job_type': _jobType,
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim(),
           'category': _selectedCategory,
@@ -167,6 +172,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(jobNotifierProvider);
+    final profileAsync = ref.watch(profileProvider);
     final isEditing = widget.job != null;
 
     ref.listen<JobState>(jobNotifierProvider, (previous, next) {
@@ -189,13 +195,51 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
         title: Text(isEditing ? 'Edit Job' : 'Post a Job'),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: profileAsync.when(
+        data: (user) {
+          if (user == null) return const Center(child: Text('User not found'));
+          
+          if (!user.isVerified) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.verified_user_outlined, size: 80, color: AppColors.textSecondary),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Verification Required',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'To maintain a safe community, you must verify your identity before posting jobs.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.push(AppRoutes.verificationCenter),
+                        child: const Text('Get Verified Now'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               const Text(
                 'Job Details',
                 style: TextStyle(
@@ -205,6 +249,21 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Job Type
+              const Text(
+                'Job Type',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _buildTypeChoice('digital', Icons.computer, 'Digital'),
+                  const SizedBox(width: 12),
+                  _buildTypeChoice('physical', Icons.hail, 'Physical'),
+                ],
+              ),
+              const SizedBox(height: 24),
 
               // Title
               TextFormField(
@@ -279,26 +338,29 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
               const SizedBox(height: 16),
 
               // Location
-              DropdownButtonFormField<String>(
-                value: _selectedLocation,
-                decoration: const InputDecoration(
-                  labelText: 'Location',
-                  prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+              if (_jobType == 'physical') ...[
+                DropdownButtonFormField<String>(
+                  value: _selectedLocation == 'Remote' ? _locations[1] : _selectedLocation,
+                  decoration: const InputDecoration(
+                    labelText: 'Job Location',
+                    prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                  ),
+                  dropdownColor: AppColors.surface,
+                  items: _locations.where((l) => l != 'Remote').map((loc) {
+                    return DropdownMenuItem(
+                      value: loc,
+                      child: Text(loc, style: const TextStyle(color: AppColors.textPrimary)),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedLocation = value);
+                    }
+                  },
+                  validator: (value) => _jobType == 'physical' && (value == null || value == 'Remote') ? 'Location is required for physical jobs' : null,
                 ),
-                dropdownColor: AppColors.surface,
-                items: _locations.map((loc) {
-                  return DropdownMenuItem(
-                    value: loc,
-                    child: Text(loc, style: const TextStyle(color: AppColors.textPrimary)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedLocation = value);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
 
               // Deadline
               GestureDetector(
@@ -419,6 +481,46 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                           ),
                         )
                       : Text(isEditing ? 'Save Changes' : 'Post Job'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+    loading: () => const Center(child: CircularProgressIndicator()),
+    error: (e, s) => Center(child: Text('Error: $e')),
+    ),
+    );
+  }
+
+  Widget _buildTypeChoice(String type, IconData icon, String label) {
+    final isSelected = _jobType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _jobType = type;
+          if (type == 'digital') _selectedLocation = 'Remote';
+        }),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.borderColor,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
                 ),
               ),
             ],

@@ -8,6 +8,7 @@ class Job with _$Job {
   const factory Job({
     required String id,
     @JsonKey(name: 'client_id') required String clientId,
+    @JsonKey(name: 'job_type') @Default('digital') String jobType,
     required String title,
     required String description,
     required String category,

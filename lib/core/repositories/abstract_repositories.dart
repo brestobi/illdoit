@@ -39,10 +39,18 @@ abstract class UserRepository {
 
   /// Submit verification request with documents
   Future<void> submitVerification({
+    required String realName,
+    required String idNumber,
+    required String address,
+    required String phone,
     required String idType,
     required String idFrontUrl,
     String? idBackUrl,
     String? selfieUrl,
+    required String bankName,
+    required String bankAccountNumber,
+    required String bankAccountType,
+    required String bankBranchCode,
   });
 
   /// Report a user for misconduct or scam

@@ -166,22 +166,35 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<void> submitVerification({
+    required String realName,
+    required String idNumber,
+    required String address,
+    required String phone,
     required String idType,
     required String idFrontUrl,
     String? idBackUrl,
     String? selfieUrl,
+    required String bankName,
+    required String bankAccountNumber,
+    required String bankAccountType,
+    required String bankBranchCode,
   }) async {
     final currentUser = _supabaseService.currentUser;
     if (currentUser == null) throw AuthenticationException('No user logged in');
 
     try {
-      // In a real app, we'd save this to a 'verification_requests' table
-      // For this MVP, we'll just update the user's metadata or a simple flag
       await _supabaseService.update(
         table: 'users',
         id: currentUser.id,
         data: {
-          'is_verified': false, // Still false until admin approves
+          'real_name': realName,
+          'id_number': idNumber,
+          'address': address,
+          'phone': phone,
+          'bank_name': bankName,
+          'bank_account_number': bankAccountNumber,
+          'bank_account_type': bankAccountType,
+          'bank_branch_code': bankBranchCode,
           'verification_status': 'pending',
           'verification_metadata': {
             'id_type': idType,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../providers/profile_provider.dart';
@@ -36,32 +37,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Settings',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: theme.appBarTheme.titleTextStyle?.color,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, color: theme.appBarTheme.iconTheme?.color ?? theme.iconTheme.color),
           onPressed: () => context.pop(),
         ),
       ),
       body: profileAsync.when(
         data: (user) {
-          if (user == null) return const Center(child: Text('User not found', style: TextStyle(color: AppColors.textPrimary)));
+          if (user == null) return Center(child: Text('User not found', style: TextStyle(color: theme.textTheme.bodyLarge?.color)));
 
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 24),
             children: [
+              _buildSectionHeader('Appearance'),
+              _buildSettingCard([
+                _buildToggleTile(
+                  icon: Icons.brightness_6,
+                  title: 'Dark Mode',
+                  subtitle: 'Enable dark theme across the app',
+                  value: ref.watch(themeNotifierProvider) == ThemeMode.dark,
+                  onChanged: (val) {
+                    ref.read(themeNotifierProvider.notifier).toggleTheme();
+                  },
+                ),
+              ]),
+              
+              const SizedBox(height: 24),
               _buildSectionHeader('Privacy Controls'),
               _buildSettingCard([
                 _buildToggleTile(
@@ -73,7 +89,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ref.read(profileProvider.notifier).updateProfile(isProfilePublic: val);
                   },
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderColor),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildToggleTile(
                   icon: Icons.visibility,
                   title: 'Show Last Seen',
@@ -83,7 +99,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ref.read(profileProvider.notifier).updateProfile(showLastSeen: val);
                   },
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderColor),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildToggleTile(
                   icon: Icons.contact_mail_outlined,
                   title: 'Show Contact Info',
@@ -103,13 +119,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   title: 'Change Password',
                   onTap: () {},
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderColor),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.notifications_none,
                   title: 'Notification Preferences',
                   onTap: () {},
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderColor),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.language,
                   title: 'Language',
@@ -126,13 +142,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   title: 'Help Center',
                   onTap: () {},
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderColor),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.description_outlined,
                   title: 'Terms of Service',
                   onTap: () {},
                 ),
-                const Divider(height: 1, indent: 56, color: AppColors.borderColor),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Policy',
@@ -144,21 +160,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Center(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'By Hungry Developers',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                        color: theme.textTheme.bodySmall?.color,
                         letterSpacing: 1.2,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Version $_version ($_buildNumber)',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textTertiary,
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -169,20 +185,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, s) => Center(child: Text('Error: $e', style: TextStyle(color: theme.colorScheme.error))),
       ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, bottom: 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: AppColors.textSecondary,
+          color: theme.textTheme.bodySmall?.color,
           letterSpacing: 1.1,
         ),
       ),
@@ -190,12 +207,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildSettingCard(List<Widget> children) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(children: children),
     );
@@ -208,27 +226,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
+          color: theme.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
+        child: Icon(icon, color: theme.primaryColor, size: 20),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.textPrimary),
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: theme.textTheme.titleMedium?.color),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
+        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
       ),
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeColor: AppColors.primary,
+        activeColor: theme.primaryColor,
       ),
     );
   }
@@ -239,19 +258,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     String? trailing,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return ListTile(
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.textSecondary.withValues(alpha: 0.1),
+          color: (theme.textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppColors.textSecondary, size: 20),
+        child: Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.textPrimary),
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: theme.textTheme.titleMedium?.color),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -259,10 +279,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           if (trailing != null)
             Text(
               trailing,
-              style: const TextStyle(color: AppColors.textTertiary, fontSize: 13),
+              style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13),
             ),
           const SizedBox(width: 4),
-          const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textDisabled),
+          Icon(Icons.arrow_forward_ios, size: 14, color: theme.disabledColor),
         ],
       ),
     );

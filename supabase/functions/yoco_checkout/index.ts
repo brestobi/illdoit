@@ -71,11 +71,16 @@ export default async (req: Request) => {
     }
 
     // 2. Call Yoco to create checkout session
+    const successUrl = `${supabaseUrl}/functions/v1/yoco_webhook?action=success&id=${paymentRecord.id}`;
+    const cancelUrl = `${supabaseUrl}/functions/v1/yoco_webhook?action=cancel&id=${paymentRecord.id}`;
+
     const checkoutPayload = {
       amountInCents: Math.round(amount * 100),
       currency,
       reference: paymentRecord.reference, // Use our internal reference
       description,
+      successUrl: successUrl,
+      cancelUrl: cancelUrl,
       metadata: {
         payment_id: paymentRecord.id,
         user_id: user.id

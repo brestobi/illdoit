@@ -16,8 +16,21 @@ class IdVerificationScreen extends ConsumerStatefulWidget {
 
 class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   final PageController _pageController = PageController();
+  final _formKey = GlobalKey<FormState>();
   int _currentStep = 0;
   
+  // Personal Details
+  final _nameController = TextEditingController();
+  final _idNumController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  // Bank Details
+  final _bankNameController = TextEditingController();
+  final _accNumController = TextEditingController();
+  final _accTypeController = TextEditingController();
+  final _branchController = TextEditingController();
+
   String? _selectedIdType;
   File? _idFrontFile;
   File? _idBackFile;
@@ -34,6 +47,14 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _nameController.dispose();
+    _idNumController.dispose();
+    _addressController.dispose();
+    _phoneController.dispose();
+    _bankNameController.dispose();
+    _accNumController.dispose();
+    _accTypeController.dispose();
+    _branchController.dispose();
     super.dispose();
   }
 
@@ -54,31 +75,45 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   }
 
   void _nextPage() {
-    if (_currentStep == 0 && _selectedIdType == null) {
+    if (_currentStep == 0) {
+      if (_nameController.text.isEmpty || _idNumController.text.isEmpty || _addressController.text.isEmpty || _phoneController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all personal details')));
+        return;
+      }
+    }
+
+    if (_currentStep == 1 && _selectedIdType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select an ID type')),
       );
       return;
     }
     
-    if (_currentStep == 1 && _idFrontFile == null) {
+    if (_currentStep == 2 && _idFrontFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please upload the front of your ID')),
       );
       return;
     }
 
-    if (_currentStep == 2 && _selectedIdType == 'South African ID Smart Card' && _idBackFile == null) {
+    if (_currentStep == 3 && _selectedIdType == 'South African ID Smart Card' && _idBackFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please upload the back of your Smart Card')),
       );
       return;
     }
 
+    if (_currentStep == 4) {
+      if (_bankNameController.text.isEmpty || _accNumController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill bank account details')));
+        return;
+      }
+    }
+
     if (_currentStep < _totalSteps - 1) {
       // Skip back image step if not a Smart Card
-      if (_currentStep == 1 && _selectedIdType != 'South African ID Smart Card') {
-        _pageController.jumpToPage(3);
+      if (_currentStep == 2 && _selectedIdType != 'South African ID Smart Card') {
+        _pageController.jumpToPage(4);
         return;
       }
 
@@ -93,8 +128,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
 
   void _previousPage() {
     if (_currentStep > 0) {
-      if (_currentStep == 3 && _selectedIdType != 'South African ID Smart Card') {
-        _pageController.jumpToPage(1);
+      if (_currentStep == 4 && _selectedIdType != 'South African ID Smart Card') {
+        _pageController.jumpToPage(2);
         return;
       }
       _pageController.previousPage(
@@ -104,7 +139,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     }
   }
 
-  int get _totalSteps => 4;
+  int get _totalSteps => 6;
 
   Future<void> _submit() async {
     if (_selfieFile == null) {
@@ -142,10 +177,18 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
 
       // 2. Submit request
       await repo.submitVerification(
+        realName: _nameController.text.trim(),
+        idNumber: _idNumController.text.trim(),
+        address: _addressController.text.trim(),
+        phone: _phoneController.text.trim(),
         idType: _selectedIdType!,
         idFrontUrl: frontUrl,
         idBackUrl: backUrl,
         selfieUrl: selfieUrl,
+        bankName: _bankNameController.text.trim(),
+        bankAccountNumber: _accNumController.text.trim(),
+        bankAccountType: _accTypeController.text.trim(),
+        bankBranchCode: _branchController.text.trim(),
       );
 
       // 3. Refresh profile
@@ -223,9 +266,11 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               physics: const NeverScrollableScrollPhysics(),
               onPageChanged: (index) => setState(() => _currentStep = index),
               children: [
+                _buildPersonalInfoStep(),
                 _buildIdTypeStep(),
                 _buildFrontImageStep(),
                 _buildBackImageStep(),
+                _buildBankDetailsStep(),
                 _buildSelfieStep(),
               ],
             ),
@@ -285,6 +330,90 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ),
         const SizedBox(height: 32),
       ],
+    );
+  }
+
+  Widget _buildPersonalInfoStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Form(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildStepHeader(
+              'Personal Details', 
+              'Please provide your official information as it appears on your identity document.'
+            ),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Full Real Name', hintText: 'e.g. John Doe'),
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idNumController,
+              decoration: const InputDecoration(labelText: 'ID / Passport Number'),
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _phoneController,
+              decoration: const InputDecoration(labelText: 'Cell Phone Number'),
+              keyboardType: TextInputType.phone,
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(labelText: 'Residential Address'),
+              maxLines: 2,
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBankDetailsStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStepHeader(
+            'Banking Details', 
+            'Where should we send your earnings? Please ensure the account belongs to you.'
+          ),
+          TextFormField(
+            controller: _bankNameController,
+            decoration: const InputDecoration(labelText: 'Bank Name', hintText: 'e.g. FNB, Standard Bank'),
+            style: const TextStyle(color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _accNumController,
+            decoration: const InputDecoration(labelText: 'Account Number'),
+            keyboardType: TextInputType.number,
+            style: const TextStyle(color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _accTypeController,
+            decoration: const InputDecoration(labelText: 'Account Type', hintText: 'e.g. Savings, Cheque'),
+            style: const TextStyle(color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _branchController,
+            decoration: const InputDecoration(labelText: 'Branch Code (Optional)'),
+            keyboardType: TextInputType.number,
+            style: const TextStyle(color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
     );
   }
 
@@ -402,17 +531,18 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         children: [
           _buildStepHeader(
             'Liveness Check', 
-            'Finally, take a selfie to verify it\'s you. Keep your face centered in the frame.'
+            'Finally, take a selfie while holding your ID document next to your face. Ensure both your face and the ID details are visible.'
           ),
           _buildImageUploadArea(
             file: _selfieFile,
             onTap: () => _pickImage('selfie'),
             placeholderIcon: Icons.face_outlined,
-            placeholderText: 'Tap to take a selfie',
-            isCircular: true,
+            placeholderText: 'Tap to take a selfie with ID',
+            isCircular: false, // Better to see the ID
           ),
           const SizedBox(height: 24),
           _buildGuidelineItem(Icons.face, 'Look straight at the camera'),
+          _buildGuidelineItem(Icons.badge_outlined, 'Hold your ID next to your face'),
           _buildGuidelineItem(Icons.no_photography_outlined, 'Remove glasses, hats, or masks'),
         ],
       ),

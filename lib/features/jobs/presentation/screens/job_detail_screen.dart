@@ -147,6 +147,31 @@ class JobDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
 
+                // Safety Tip for Physical Jobs
+                if (job.jobType == 'physical') ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.security, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Safety Tip: For physical jobs, always meet in a public place and tell a friend your location.',
+                            style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
                 // Images
                 if (job.images.isNotEmpty) ...[
                   const Text(
@@ -225,6 +250,12 @@ class JobDetailScreen extends ConsumerWidget {
                                 )
                             : canApply
                                 ? () async {
+                                    final profile = ref.read(profileProvider).valueOrNull;
+                                    if (job.jobType == 'physical' && (profile == null || !profile.isVerified)) {
+                                      _showVerificationRequiredDialog(context);
+                                      return;
+                                    }
+
                                     final result = await showDialog<Map<String, dynamic>>(
                                       context: context,
                                       builder: (context) => _ApplyDialog(job: job),
@@ -413,6 +444,33 @@ class JobDetailScreen extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+
+  void _showVerificationRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Verification Required', style: TextStyle(color: AppColors.textPrimary)),
+        content: const Text(
+          'Physical jobs require identity verification for safety and trust. Please complete your verification to apply.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Maybe Later'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.push(AppRoutes.verificationCenter);
+            },
+            child: const Text('Verify Now'),
+          ),
+        ],
+      ),
     );
   }
 

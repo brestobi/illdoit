@@ -18,6 +18,7 @@ class JobsScreen extends ConsumerStatefulWidget {
 
 class _JobsScreenState extends ConsumerState<JobsScreen> {
   int _selectedTabIndex = 0;
+  String _selectedType = 'all'; // all, digital, physical
 
   String get _status {
     switch (_selectedTabIndex) {
@@ -47,6 +48,21 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
             onPressed: () => context.push(AppRoutes.createJob),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                _buildTypeFilter('all', 'All'),
+                const SizedBox(width: 8),
+                _buildTypeFilter('digital', 'Digital'),
+                const SizedBox(width: 8),
+                _buildTypeFilter('physical', 'Physical'),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -69,22 +85,29 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 return ref.read(jobsByStatusProvider(_status).future);
               },
               child: jobsAsync.when(
-                data: (jobs) => jobs.isEmpty
-                    ? SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.6,
-                          child: _buildEmptyState(),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: jobs.length,
-                        itemBuilder: (context, index) {
-                          return _buildJobCard(jobs[index]);
-                        },
-                      ),
+                data: (jobs) {
+                  final filteredJobs = jobs.where((j) {
+                    if (_selectedType == 'all') return true;
+                    return j.jobType == _selectedType;
+                  }).toList();
+
+                  return filteredJobs.isEmpty
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: _buildEmptyState(),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: filteredJobs.length,
+                          itemBuilder: (context, index) {
+                            return _buildJobCard(filteredJobs[index]);
+                          },
+                        );
+                },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Center(
                   child: Column(
@@ -147,17 +170,44 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.work_off_outlined,
+          Icon(
+            _selectedType == 'physical' ? Icons.hail : _selectedType == 'digital' ? Icons.computer : Icons.work_off_outlined,
             size: 64,
             color: AppColors.textSecondary,
           ),
           const SizedBox(height: 16),
           Text(
-            'No $_status jobs found.',
+            'No ${_selectedType != 'all' ? _selectedType : ''} $_status jobs found.',
             style: const TextStyle(color: AppColors.textSecondary),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTypeFilter(String id, String label) {
+    final isSelected = _selectedType == id;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedType = id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderColor),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? AppColors.black : AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -182,13 +232,25 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    job.title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        job.jobType == 'physical' ? Icons.hail : Icons.computer,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          job.title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(

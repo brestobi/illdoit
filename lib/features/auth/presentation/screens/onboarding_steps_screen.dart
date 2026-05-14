@@ -16,10 +16,11 @@ class OnboardingStepsScreen extends ConsumerStatefulWidget {
 class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  final int _totalSteps = 3;
+  final int _totalSteps = 4;
 
   // Form data
   String _selectedRole = 'viewer'; // viewer, job_seeker, employer
+  String _preferredJobType = 'both'; // digital, physical, both
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -89,6 +90,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
       final repository = ref.read(userRepositoryProvider);
       await repository.updateUserProfile(data: {
         'user_type': _selectedRole,
+        'preferred_job_type': _preferredJobType,
         'bio': _bioController.text,
         'location': _locationController.text,
         'phone': _phoneController.text,
@@ -134,17 +136,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
                           fontSize: 14,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => context.go(AppRoutes.home),
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -173,6 +165,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
                 },
                 children: [
                   _buildRoleSelectionStep(),
+                  _buildJobPreferenceStep(),
                   _buildBasicInfoStep(),
                   _buildSkillsStep(),
                 ],
@@ -325,6 +318,101 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
             ),
             if (isSelected)
               const Icon(Icons.check_circle, color: AppColors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJobPreferenceStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'What kind of work interests you?',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'This helps us show you the most relevant opportunities.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+          ),
+          const SizedBox(height: 32),
+          _buildPreferenceCard(
+            id: 'digital',
+            title: 'Digital Jobs',
+            description: 'Remote work, design, writing, development, etc.',
+            icon: Icons.computer,
+          ),
+          const SizedBox(height: 16),
+          _buildPreferenceCard(
+            id: 'physical',
+            title: 'Physical Jobs',
+            description: 'On-site work, plumbing, cleaning, delivery, etc.',
+            icon: Icons.hail,
+          ),
+          const SizedBox(height: 16),
+          _buildPreferenceCard(
+            id: 'both',
+            title: 'Both',
+            description: 'I\'m open to both digital and physical opportunities.',
+            icon: Icons.all_inclusive,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreferenceCard({
+    required String id,
+    required String title,
+    required String description,
+    required IconData icon,
+  }) {
+    final isSelected = _preferredJobType == id;
+    return GestureDetector(
+      onTap: () => setState(() => _preferredJobType = id),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.borderColor,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary),
           ],
         ),
       ),

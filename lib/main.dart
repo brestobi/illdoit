@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'firebase_options.dart';
 
@@ -64,14 +65,15 @@ class _IllDoItAppState extends ConsumerState<IllDoItApp> {
   @override
   Widget build(BuildContext context) {
     final goRouter = ref.watch(goRouterProvider);
+    final themeMode = ref.watch(themeNotifierProvider);
 
     return MaterialApp.router(
       title: "I'll Do It",
       debugShowCheckedModeBanner: false,
       routerConfig: goRouter,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
     );
   }
 }

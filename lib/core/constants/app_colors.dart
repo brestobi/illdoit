@@ -13,6 +13,16 @@ class AppColors {
   static const Color primaryDark = Color(0xFFE6B800);
   static const Color primaryLight = Color(0xFFFFF44F);
 
+  // Light Theme Colors (Blue and White)
+  static const Color lightPrimary = Color(0xFF2196F3); // Blue
+  static const Color lightPrimaryDark = Color(0xFF1976D2);
+  static const Color lightPrimaryLight = Color(0xFFBBDEFB);
+  static const Color lightBg = Color(0xFFF5F5F5); // Off-white background
+  static const Color lightSurface = Color(0xFFFFFFFF); // White surface
+  static const Color lightTextPrimary = Color(0xFF212121); // Dark gray/black text
+  static const Color lightTextSecondary = Color(0xFF757575); // Medium gray text
+  static const Color lightBorder = Color(0xFFE0E0E0); // Light gray border
+
   // Secondary Colors
   static const Color secondary = Color(0xFF00BCD4); // Complementary cyan
   static const Color secondaryDark = Color(0xFF0097A7);
