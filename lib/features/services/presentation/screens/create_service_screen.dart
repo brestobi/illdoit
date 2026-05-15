@@ -85,18 +85,19 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
       final serviceNotifier = ref.read(serviceNotifierProvider.notifier);
 
       try {
-        // Handle images
-        for (final item in _images) {
+        // Handle images in parallel
+        final uploadTasks = _images.map((item) async {
           if (item is String) {
-            imageUrls.add(item);
+            return item;
           } else if (item is File) {
             final bytes = await item.readAsBytes();
-            final url = await serviceNotifier.uploadImage(bytes);
-            if (url != null) {
-              imageUrls.add(url);
-            }
+            return await serviceNotifier.uploadImage(bytes);
           }
-        }
+          return null;
+        }).toList();
+
+        final results = await Future.wait(uploadTasks);
+        imageUrls.addAll(results.whereType<String>());
 
         final data = {
           'user_id': currentUser.id,

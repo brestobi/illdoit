@@ -17,99 +17,63 @@ static const String supabaseAnonKey = 'YOUR_ANON_KEY';
 
 ### 2. Database Setup
 
-Run these SQL queries in the Supabase SQL editor:
+To set up your database, you have two options:
+
+#### Option A: Run Full Schema (Recommended for Fresh Projects)
+Copy the contents of `schema.sql` into the Supabase SQL editor and run it. This will create all necessary tables, columns, and RLS policies.
+
+#### Option B: Manual Table Creation
+If you want to create tables manually, ensure they include the following columns for the `users` and `jobs` tables (which are critical for the app):
 
 ```sql
 -- Users table
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email VARCHAR(255) UNIQUE NOT NULL,
   phone VARCHAR(20),
   display_name VARCHAR(255) NOT NULL,
   bio TEXT,
   avatar_url TEXT,
   location VARCHAR(255),
+  user_type VARCHAR(50) DEFAULT 'viewer',
+  preferred_job_type TEXT DEFAULT 'both',
+  is_onboarding_completed BOOLEAN DEFAULT FALSE,
   skills TEXT[] DEFAULT ARRAY[]::TEXT[],
   rating DECIMAL(3,1) DEFAULT 0,
   completed_jobs INT DEFAULT 0,
   is_verified BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Services table
-CREATE TABLE services (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  category VARCHAR(100) NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  delivery_time INT NOT NULL,
-  images TEXT[] DEFAULT ARRAY[]::TEXT[],
-  rating DECIMAL(3,1) DEFAULT 0,
-  total_orders INT DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  verification_status TEXT DEFAULT 'unverified',
+  balance DECIMAL(12,2) DEFAULT 0.00,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Jobs table
 CREATE TABLE jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   client_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  job_type TEXT DEFAULT 'digital',
   title VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   category VARCHAR(100) NOT NULL,
   budget DECIMAL(10,2) NOT NULL,
-  deadline TIMESTAMP NOT NULL,
+  deadline TIMESTAMP WITH TIME ZONE NOT NULL,
   status VARCHAR(50) DEFAULT 'open',
   images TEXT[] DEFAULT ARRAY[]::TEXT[],
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Messages table
-CREATE TABLE messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  receiver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  content TEXT NOT NULL,
-  image_url TEXT,
-  is_read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Reviews table
-CREATE TABLE reviews (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reviewer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  target_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  service_id UUID REFERENCES services(id) ON DELETE SET NULL,
-  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
-  comment TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Transactions table
-CREATE TABLE transactions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  receiver_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  amount DECIMAL(10,2) NOT NULL,
-  type VARCHAR(50) NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending',
-  reference VARCHAR(255),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Storage setup
--- Run these in the Storage section:
--- Create bucket: 'avatars' (Public)
--- Create bucket: 'service-images' (Public)
--- Create bucket: 'job-images' (Public)
 ```
+
+> **Important**: If you already have a database and are seeing errors like "column not found", ensure you have run all migrations in `supabase/migrations/` or run the `schema.sql` script to update your existing tables.
+
+### 3. Storage Setup
+Run these in the Storage section:
+- Create bucket: 'avatars' (Public)
+- Create bucket: 'service-images' (Public)
+- Create bucket: 'job-images' (Public)
+- Create bucket: 'verification-docs' (Private)
+
 
 ### 3. Authentication Setup
 
@@ -167,15 +131,34 @@ If you want to enable Yoco payments, add your Yoco secret key here as well:
 YOCO_SECRET_KEY=your_yoco_secret_key
 ```
 
-The app calls a Supabase Edge Function to create the Yoco checkout session, so the secret key stays on the backend.
+The app calls a Supabase Edge Function to create the Yoco checkout session, so the secret key stays on the backend. 
 
-### 6. Dependencies
+**Note**: You must also set this secret in your Supabase project for the Edge Functions to access it:
+```bash
+supabase secrets set YOCO_SECRET_KEY=your_yoco_secret_key
+```
+
+### 6. Edge Functions Deployment
+
+Deploy the payment functions to Supabase:
+```bash
+supabase functions deploy yoco_checkout
+supabase functions deploy yoco_webhook
+```
+
+### 7. Yoco Webhook Configuration
+
+After deploying, you must configure the webhook URL in your Yoco Dashboard (Test or Live):
+- **Webhook URL**: `https://[your-project-ref].supabase.co/functions/v1/yoco_webhook`
+- **Events to subscribe to**: `payment.succeeded` or `checkout.paid` (depending on your Yoco integration type).
+
+### 8. Dependencies
 
 ```bash
 flutter pub get
 ```
 
-### 7. Code Generation
+### 9. Code Generation
 
 ```bash
 flutter pub run build_runner build

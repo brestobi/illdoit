@@ -83,8 +83,9 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<User> getUserById({required String userId}) async {
     try {
+      // Use public_profiles view to protect sensitive data
       final data = await _supabaseService.query(
-        table: 'users',
+        table: 'public_profiles',
         filters: {'id': userId},
       );
 
@@ -105,8 +106,9 @@ class UserRepositoryImpl implements UserRepository {
     String? category,
   }) async {
     try {
+      // Use public_profiles view
       final results = await _supabaseService.query(
-        table: 'users',
+        table: 'public_profiles',
         searchFilters: {'display_name': query},
       );
 
@@ -119,9 +121,10 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<List<User>> getUsers({String? userType, int? limit}) async {
     try {
+      // Use public_profiles view
       final filters = userType != null ? {'user_type': userType} : null;
       final results = await _supabaseService.query(
-        table: 'users',
+        table: 'public_profiles',
         filters: filters,
       );
       
