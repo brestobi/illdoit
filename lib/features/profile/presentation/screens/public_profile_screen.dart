@@ -8,6 +8,7 @@ import '../../../../core/models/user.dart';
 import '../providers/profile_provider.dart';
 import '../providers/review_provider.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
+import '../../../../features/services/presentation/providers/services_provider.dart';
 
 class PublicProfileScreen extends ConsumerWidget {
   final String userId;
@@ -93,7 +94,7 @@ class PublicProfileScreen extends ConsumerWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        // TODO: Implement Hire flow
+                        _showHireBottomSheet(context, user.id, user.displayName);
                       },
                       icon: const Icon(Icons.work_outline, size: 18),
                       label: const Text('Hire'),
@@ -298,6 +299,104 @@ class PublicProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showHireBottomSheet(BuildContext context, String userId, String userName) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.darkBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Hire $userName',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Select a service to proceed:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Consumer(
+                builder: (context, ref, child) {
+                  final servicesAsync = ref.watch(userServicesProvider(userId));
+                  
+                  return servicesAsync.when(
+                    data: (services) {
+                      if (services.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32.0),
+                          child: Center(
+                            child: Text(
+                              'This user has no active services.',
+                              style: TextStyle(color: AppColors.textSecondary),
+                            ),
+                          ),
+                        );
+                      }
+                      
+                      return Flexible(
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: services.length,
+                          separatorBuilder: (context, index) => const Divider(color: AppColors.borderColor),
+                          itemBuilder: (context, index) {
+                            final service = services[index];
+                            return ListTile(
+                              title: Text(
+                                service.title,
+                                style: const TextStyle(color: AppColors.textPrimary),
+                              ),
+                              subtitle: Text(
+                                'R${service.price.toStringAsFixed(2)}',
+                                style: const TextStyle(color: AppColors.primary),
+                              ),
+                              trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                              onTap: () {
+                                Navigator.pop(context);
+                                context.push('/service/${service.id}');
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (err, stack) => Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(
+                        child: Text(
+                          'Error loading services: $err',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

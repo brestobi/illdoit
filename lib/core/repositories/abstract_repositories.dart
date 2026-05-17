@@ -82,6 +82,7 @@ abstract class ServiceRepository {
   Future<List<Service>> getServices({
     String? category,
     String? sortBy,
+    String? userId,
   });
 
   /// Get service by ID

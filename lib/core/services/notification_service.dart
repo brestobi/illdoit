@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -66,13 +67,13 @@ class NotificationService {
     // 4. Handle background messages (app opened from notification)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       log('A new onMessageOpenedApp event was published!');
-      _handleNotificationTap(message.data.toString());
+      _handleNotificationTap(jsonEncode(message.data));
     });
     
     // Check if app was opened from a terminated state via notification
     RemoteMessage? initialMessage = await _fcm.getInitialMessage();
     if (initialMessage != null) {
-      _handleNotificationTap(initialMessage.data.toString());
+      _handleNotificationTap(jsonEncode(initialMessage.data));
     }
 
     // 5. Get and save the token
@@ -84,24 +85,38 @@ class NotificationService {
     log('Notification payload: $payload');
     
     try {
-      // In a real app, you'd parse the JSON payload
-      // For this implementation, we'll look for a sender_id or chat marker
-      if (payload.contains('sender_id') || payload.contains('chat')) {
-        // Extract sender_id from payload (simple string parsing for example)
-        // Expected payload format: "{type: chat, sender_id: UUID}"
-        final regExp = RegExp(r'sender_id: ([^,}\s]+)');
-        final match = regExp.firstMatch(payload);
-        
-        if (match != null) {
-          final senderId = match.group(1);
-          if (senderId != null) {
-            // Navigate to chat screen with the sender
-            // Note: goRouter is available globally or via _ref.read(goRouterProvider)
-            _ref.read(goRouterProvider).push('/chat/$senderId');
-          }
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final type = data['type'] as String?;
+
+      if (type == 'chat') {
+        final senderId = data['sender_id'];
+        if (senderId != null) {
+          _ref.read(goRouterProvider).push('/chat/$senderId');
         } else {
-          // Fallback to conversations list
           _ref.read(goRouterProvider).push('/chat');
+        }
+      } else if (type == 'order') {
+        _ref.read(goRouterProvider).push('/services');
+      } else if (type == 'job_application') {
+        final jobId = data['job_id'];
+        if (jobId != null) {
+          _ref.read(goRouterProvider).push('/job/$jobId');
+        }
+      } else if (type == 'payment') {
+        _ref.read(goRouterProvider).push('/wallet');
+      } else if (type == 'review') {
+        final reviewerId = data['reviewer_id'];
+        if (reviewerId != null) {
+          _ref.read(goRouterProvider).push('/profile/$reviewerId');
+        }
+      } else {
+        // Fallback for older notifications
+        if (payload.contains('sender_id')) {
+          final regExp = RegExp(r'sender_id: ([^,}\s]+)');
+          final match = regExp.firstMatch(payload);
+          if (match != null && match.group(1) != null) {
+            _ref.read(goRouterProvider).push('/chat/${match.group(1)}');
+          }
         }
       }
     } catch (e) {
@@ -145,7 +160,7 @@ class NotificationService {
       message.notification?.title,
       message.notification?.body,
       platformChannelSpecifics,
-      payload: message.data.toString(),
+      payload: jsonEncode(message.data),
     );
   }
 }

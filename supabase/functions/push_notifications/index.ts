@@ -14,17 +14,16 @@ export default async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Parse the incoming database webhook payload
+    // 1. Parse the incoming database webhook payload from notifications table
     const { record } = await req.json();
-    const { sender_id, receiver_id, content } = record;
+    const { user_id, type, title, body, data } = record;
 
-    if (!sender_id || !receiver_id) {
+    if (!user_id || !title || !body) {
       return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 });
     }
 
-    // 2. Fetch sender details and receiver push token
-    const { data: sender } = await supabase.from('users').select('display_name').eq('id', sender_id).single();
-    const { data: receiver } = await supabase.from('users').select('push_token').eq('id', receiver_id).single();
+    // 2. Fetch receiver push token
+    const { data: receiver } = await supabase.from('users').select('push_token').eq('id', user_id).single();
 
     if (!receiver?.push_token) {
       return new Response(JSON.stringify({ message: 'No push token for receiver' }), { status: 200 });
@@ -48,18 +47,25 @@ export default async (req: Request) => {
     // 4. Send the notification via FCM V1
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`;
     
+    const fcmData: Record<string, string> = {
+      type: type || 'general',
+      click_action: 'FLUTTER_NOTIFICATION_CLICK',
+    };
+    
+    if (data && typeof data === 'object') {
+      for (const key of Object.keys(data)) {
+        fcmData[key] = String(data[key]);
+      }
+    }
+
     const message = {
       message: {
         token: receiver.push_token,
         notification: {
-          title: sender?.display_name || 'New Message',
-          body: content,
+          title: title,
+          body: body,
         },
-        data: {
-          type: 'chat',
-          sender_id: sender_id,
-          click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        },
+        data: fcmData,
         android: {
           priority: 'high',
           notification: {

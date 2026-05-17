@@ -15,6 +15,12 @@ final serviceProvider = FutureProvider.family<Service, String>((ref, id) async {
   return serviceRepository.getServiceById(serviceId: id);
 });
 
+/// Provider for a specific user's services
+final userServicesProvider = FutureProvider.family<List<Service>, String>((ref, userId) async {
+  final serviceRepository = ref.watch(serviceRepositoryProvider);
+  return serviceRepository.getServices(userId: userId);
+});
+
 /// State for Service operations
 class ServiceState {
   final bool isLoading;

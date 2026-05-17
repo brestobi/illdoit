@@ -46,12 +46,15 @@ class ServiceRepositoryImpl implements ServiceRepository {
   }
 
   @override
-  Future<List<Service>> getServices({String? category, String? sortBy}) async {
+  Future<List<Service>> getServices({String? category, String? sortBy, String? userId}) async {
     try {
-      final filters = category != null ? {'category': category} : null;
+      final filters = <String, dynamic>{};
+      if (category != null) filters['category'] = category;
+      if (userId != null) filters['user_id'] = userId;
+
       final results = await _supabaseService.query(
         table: 'services',
-        filters: filters,
+        filters: filters.isNotEmpty ? filters : null,
       );
       return results.map((e) => Service.fromJson(e)).toList();
     } catch (e) {
