@@ -30,8 +30,11 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/phone_login_screen.dart';
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
+import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
 
+import '../../features/home/presentation/screens/notification_screen.dart';
 import '../../features/services/presentation/screens/service_detail_screen.dart';
+
 
 import '../../features/jobs/presentation/screens/job_detail_screen.dart';
 
@@ -62,6 +65,7 @@ class AppRoutes {
   static const String verificationCenter = '/verification-center';
   static const String idVerification = '/id-verification';
   static const String wallet = '/wallet';
+  static const String notifications = '/notifications';
   static const String messages = '/messages';
   static const String chat = '/chat/:id';
   static const String myOrders = '/my-orders';
@@ -245,6 +249,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.wallet,
         builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationScreen(),
       ),
       GoRoute(
         path: AppRoutes.messages,

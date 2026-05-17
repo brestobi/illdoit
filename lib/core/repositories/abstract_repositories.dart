@@ -1,3 +1,4 @@
+import '../models/app_notification.dart';
 import '../models/user.dart';
 import '../models/service.dart';
 import '../models/job.dart';
@@ -310,4 +311,25 @@ abstract class ReviewRepository {
 
   /// Delete review
   Future<void> deleteReview({required String reviewId});
+}
+
+/// Abstract repository for notification operations
+abstract class NotificationRepository {
+  /// Get all notifications for the current user
+  Future<List<AppNotification>> getNotifications();
+
+  /// Mark a specific notification as read
+  Future<void> markAsRead(String id);
+
+  /// Mark all notifications as read
+  Future<void> markAllAsRead();
+
+  /// Delete a notification
+  Future<void> deleteNotification(String id);
+
+  /// Get unread count
+  Future<int> getUnreadCount();
+
+  /// Stream of notifications for real-time updates
+  Stream<List<AppNotification>> watchNotifications();
 }

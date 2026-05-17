@@ -17,6 +17,7 @@ import '../../../../core/widgets/app_animations.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../explore/presentation/providers/explore_provider.dart';
 import '../providers/home_provider.dart';
+import '../providers/notification_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -87,9 +88,30 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.notifications_none_rounded),
-                  onPressed: () {},
+                Consumer(
+                  builder: (context, ref, child) {
+                    final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+                    return unreadCountAsync.when(
+                      data: (count) => Badge(
+                        label: Text('$count'),
+                        isLabelVisible: count > 0,
+                        backgroundColor: AppColors.primary,
+                        textColor: AppColors.darkBg,
+                        child: IconButton(
+                          icon: const Icon(Icons.notifications_none_rounded),
+                          onPressed: () => context.push(AppRoutes.notifications),
+                        ),
+                      ),
+                      loading: () => IconButton(
+                        icon: const Icon(Icons.notifications_none_rounded),
+                        onPressed: () => context.push(AppRoutes.notifications),
+                      ),
+                      error: (_, __) => IconButton(
+                        icon: const Icon(Icons.notifications_none_rounded),
+                        onPressed: () => context.push(AppRoutes.notifications),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 8),
               ],

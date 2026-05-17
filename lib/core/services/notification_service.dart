@@ -91,23 +91,23 @@ class NotificationService {
       if (type == 'chat') {
         final senderId = data['sender_id'];
         if (senderId != null) {
-          _ref.read(goRouterProvider).push('/chat/$senderId');
+          _ref.read(goRouterProvider).push(AppRoutes.chat.replaceFirst(':id', senderId));
         } else {
-          _ref.read(goRouterProvider).push('/chat');
+          _ref.read(goRouterProvider).push(AppRoutes.messages);
         }
       } else if (type == 'order') {
-        _ref.read(goRouterProvider).push('/services');
+        _ref.read(goRouterProvider).push(AppRoutes.myOrders);
       } else if (type == 'job_application') {
         final jobId = data['job_id'];
         if (jobId != null) {
-          _ref.read(goRouterProvider).push('/job/$jobId');
+          _ref.read(goRouterProvider).push(AppRoutes.jobDetail.replaceFirst(':id', jobId));
         }
       } else if (type == 'payment') {
-        _ref.read(goRouterProvider).push('/wallet');
+        _ref.read(goRouterProvider).push(AppRoutes.wallet);
       } else if (type == 'review') {
         final reviewerId = data['reviewer_id'];
         if (reviewerId != null) {
-          _ref.read(goRouterProvider).push('/profile/$reviewerId');
+          _ref.read(goRouterProvider).push(AppRoutes.publicProfile.replaceFirst(':id', reviewerId));
         }
       } else {
         // Fallback for older notifications
