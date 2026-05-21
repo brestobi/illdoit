@@ -28,8 +28,8 @@ class WalkingWorkerLoader extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             label!,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: color ?? AppColors.textSecondary,
               fontSize: 14,
               letterSpacing: 0.5,
               fontWeight: FontWeight.w500,

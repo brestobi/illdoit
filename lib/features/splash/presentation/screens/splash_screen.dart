@@ -38,38 +38,68 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.darkBg,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo/App Icon
-            const AppLogo(size: 100),
-            const SizedBox(height: 24),
-            // App Title
-            const Text(
-              'I\'ll Do It',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Splash Image
+          Image.asset(
+            'assets/images/splash.png',
+            fit: BoxFit.cover,
+          ),
+          // Gradient overlay for better text readability if needed
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.3),
+                  Colors.black.withOpacity(0.7),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            // Tagline
-            const Text(
-              'South Africa\'s Work & Hustle Platform',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w400,
-              ),
-              textAlign: TextAlign.center,
+          ),
+          // Content
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(flex: 3),
+                // Logo/App Icon
+                const AppLogo(size: 120),
+                const SizedBox(height: 24),
+                // App Title
+                const Text(
+                  'I\'ll Do It',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Tagline
+                const Text(
+                  'South Africa\'s Work & Hustle Platform',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const Spacer(flex: 2),
+                // Loading Indicator
+                const WalkingWorkerLoader(
+                  label: 'Preparing your hustle...',
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 48),
+              ],
             ),
-            const SizedBox(height: 48),
-            // Loading Indicator
-            const WalkingWorkerLoader(label: 'Preparing your hustle...'),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

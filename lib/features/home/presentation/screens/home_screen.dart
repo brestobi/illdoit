@@ -16,6 +16,7 @@ import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../core/widgets/app_animations.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../explore/presentation/providers/explore_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../providers/home_provider.dart';
 import '../providers/notification_provider.dart';
 
@@ -90,23 +91,13 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 Consumer(
                   builder: (context, ref, child) {
-                    final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
-                    return unreadCountAsync.when(
-                      data: (count) => Badge(
-                        label: Text('$count'),
-                        isLabelVisible: count > 0,
-                        backgroundColor: AppColors.primary,
-                        textColor: AppColors.darkBg,
-                        child: IconButton(
-                          icon: const Icon(Icons.notifications_none_rounded),
-                          onPressed: () => context.push(AppRoutes.notifications),
-                        ),
-                      ),
-                      loading: () => IconButton(
-                        icon: const Icon(Icons.notifications_none_rounded),
-                        onPressed: () => context.push(AppRoutes.notifications),
-                      ),
-                      error: (_, __) => IconButton(
+                    final unreadCount = ref.watch(unreadNotificationCountProvider);
+                    return Badge(
+                      label: Text('$unreadCount'),
+                      isLabelVisible: unreadCount > 0,
+                      backgroundColor: AppColors.primary,
+                      textColor: AppColors.darkBg,
+                      child: IconButton(
                         icon: const Icon(Icons.notifications_none_rounded),
                         onPressed: () => context.push(AppRoutes.notifications),
                       ),

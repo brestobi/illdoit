@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../constants/app_colors.dart';
 
 class AppLogo extends StatelessWidget {
@@ -18,16 +17,21 @@ class AppLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: isRounded
-          ? null
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(size * 0.2),
+              image: const DecorationImage(
+                image: AssetImage('assets/icons/icon.png'),
+                fit: BoxFit.cover,
+              ),
+            )
           : BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(size * 0.25),
+              image: const DecorationImage(
+                image: AssetImage('assets/icons/icon.png'),
+                fit: BoxFit.cover,
+              ),
             ),
-      child: SvgPicture.asset(
-        'assets/icons/logo.svg',
-        width: size,
-        height: size,
-      ),
     );
   }
 }

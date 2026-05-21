@@ -8,6 +8,7 @@ import '../models/order.dart';
 import '../models/job_application.dart';
 import '../models/withdrawal_request.dart';
 import '../models/dispute.dart';
+import '../models/notification.dart';
 
 /// Abstract repository for user operations
 abstract class UserRepository {
@@ -315,21 +316,21 @@ abstract class ReviewRepository {
 
 /// Abstract repository for notification operations
 abstract class NotificationRepository {
-  /// Get all notifications for the current user
+  /// Get all notifications for current user
   Future<List<AppNotification>> getNotifications();
 
-  /// Mark a specific notification as read
-  Future<void> markAsRead(String id);
+  /// Mark a notification as read
+  Future<void> markAsRead({required String notificationId});
 
   /// Mark all notifications as read
   Future<void> markAllAsRead();
 
   /// Delete a notification
-  Future<void> deleteNotification(String id);
-
-  /// Get unread count
-  Future<int> getUnreadCount();
+  Future<void> deleteNotification({required String notificationId});
 
   /// Stream of notifications for real-time updates
   Stream<List<AppNotification>> watchNotifications();
+
+  /// Get unread count
+  Future<int> getUnreadCount();
 }
