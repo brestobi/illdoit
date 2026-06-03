@@ -7,7 +7,7 @@ import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../providers/chat_provider.dart';
 
 class ConversationsScreen extends ConsumerWidget {
-  const ConversationsScreen({Key? key}) : super(key: key);
+  const ConversationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,17 +21,17 @@ class ConversationsScreen extends ConsumerWidget {
       ),
       body: conversationsAsync.when(
         data: (conversations) => conversations.isEmpty
-            ? Center(
+            ? const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.chat_bubble_outline,
                       size: 64,
                       color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'No messages yet.',
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
@@ -53,8 +53,7 @@ class ConversationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildConversationTile(BuildContext context, Map<String, dynamic> conv) {
-    return ListTile(
+  Widget _buildConversationTile(BuildContext context, Map<String, dynamic> conv) => ListTile(
       onTap: () {
         context.push(
           AppRoutes.chat.replaceFirst(':id', conv['id']),
@@ -89,5 +88,4 @@ class ConversationsScreen extends ConsumerWidget {
         color: AppColors.textSecondary,
       ),
     );
-  }
 }

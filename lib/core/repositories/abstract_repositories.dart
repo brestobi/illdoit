@@ -8,7 +8,6 @@ import '../models/order.dart';
 import '../models/job_application.dart';
 import '../models/withdrawal_request.dart';
 import '../models/dispute.dart';
-import '../models/notification.dart';
 
 /// Abstract repository for user operations
 abstract class UserRepository {

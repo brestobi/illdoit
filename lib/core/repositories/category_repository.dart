@@ -2,27 +2,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/category.dart';
 import '../services/supabase_service.dart';
 
-final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
-  return CategoryRepository(ref.watch(supabaseServiceProvider));
-});
+final categoryRepositoryProvider = Provider<CategoryRepository>((ref) => CategoryRepository(ref.watch(supabaseServiceProvider)));
 
 class CategoryRepository {
-  final SupabaseService _supabase;
 
   CategoryRepository(this._supabase);
+  final SupabaseService _supabase;
 
   Future<List<JobCategory>> getCategories() async {
     final response = await _supabase.query(
       table: 'categories',
       filters: {'is_active': true},
     );
-    return response.map((e) => JobCategory.fromJson(e)).toList();
+    return response.map(JobCategory.fromJson).toList();
   }
 }
 
-final allCategoriesProvider = FutureProvider<List<JobCategory>>((ref) async {
-  return ref.watch(categoryRepositoryProvider).getCategories();
-});
+final allCategoriesProvider = FutureProvider<List<JobCategory>>((ref) async => ref.watch(categoryRepositoryProvider).getCategories());
 
 final digitalCategoriesProvider = FutureProvider<List<JobCategory>>((ref) async {
   final all = await ref.watch(allCategoriesProvider.future);

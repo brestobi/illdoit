@@ -6,9 +6,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of UserRepository using Supabase
 class UserRepositoryImpl implements UserRepository {
-  final SupabaseService _supabaseService;
 
   UserRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<User> getCurrentUserProfile() async {
@@ -112,7 +112,7 @@ class UserRepositoryImpl implements UserRepository {
         searchFilters: {'display_name': query},
       );
 
-      return results.map((e) => User.fromJson(e)).toList();
+      return results.map(User.fromJson).toList();
     } catch (e) {
       throw ServerException('Search failed: $e');
     }
@@ -128,7 +128,7 @@ class UserRepositoryImpl implements UserRepository {
         filters: filters,
       );
       
-      final users = results.map((e) => User.fromJson(e)).toList();
+      final users = results.map(User.fromJson).toList();
       if (limit != null && users.length > limit) {
         return users.sublist(0, limit);
       }

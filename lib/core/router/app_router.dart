@@ -31,9 +31,7 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/phone_login_screen.dart';
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
-import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
 
-import '../../features/home/presentation/screens/notification_screen.dart';
 import '../../features/services/presentation/screens/service_detail_screen.dart';
 
 
@@ -76,13 +74,13 @@ class AppRoutes {
 
 /// A notifier that bridges Riverpod and GoRouter's refreshListenable
 class RouterNotifier extends ChangeNotifier {
-  final Ref _ref;
 
   RouterNotifier(this._ref) {
     // Notify GoRouter when auth or profile state changes
     _ref.listen(authProvider, (_, __) => notifyListeners());
     _ref.listen(profileProvider, (_, __) => notifyListeners());
   }
+  final Ref _ref;
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authState = _ref.read(authProvider);
@@ -123,7 +121,7 @@ class RouterNotifier extends ChangeNotifier {
   }
 }
 
-final routerNotifierProvider = Provider<RouterNotifier>((ref) => RouterNotifier(ref));
+final routerNotifierProvider = Provider<RouterNotifier>(RouterNotifier.new);
 
 /// GoRouter provider for navigation
 final goRouterProvider = Provider<GoRouter>((ref) {

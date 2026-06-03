@@ -30,35 +30,33 @@ final jobProvider = FutureProvider.family<Job, String>((ref, id) async {
 
 /// State for Job operations
 class JobState {
-  final bool isLoading;
-  final String? errorMessage;
-  final bool isSuccess;
 
   JobState({
     this.isLoading = false,
     this.errorMessage,
     this.isSuccess = false,
   });
+  final bool isLoading;
+  final String? errorMessage;
+  final bool isSuccess;
 
   JobState copyWith({
     bool? isLoading,
     String? errorMessage,
     bool? isSuccess,
-  }) {
-    return JobState(
+  }) => JobState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       isSuccess: isSuccess ?? this.isSuccess,
     );
-  }
 }
 
 /// Notifier for job operations
 class JobNotifier extends StateNotifier<JobState> {
-  final JobRepository _jobRepository;
-  final Ref _ref;
 
   JobNotifier(this._jobRepository, this._ref) : super(JobState());
+  final JobRepository _jobRepository;
+  final Ref _ref;
 
   Future<void> createJob(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, errorMessage: null, isSuccess: false);

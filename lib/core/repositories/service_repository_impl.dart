@@ -6,9 +6,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of ServiceRepository using Supabase
 class ServiceRepositoryImpl implements ServiceRepository {
-  final SupabaseService _supabaseService;
 
   ServiceRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<Service> createService({required Map<String, dynamic> data}) async {
@@ -56,7 +56,7 @@ class ServiceRepositoryImpl implements ServiceRepository {
         table: 'services',
         filters: filters.isNotEmpty ? filters : null,
       );
-      return results.map((e) => Service.fromJson(e)).toList();
+      return results.map(Service.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch services: $e');
     }
@@ -124,7 +124,7 @@ class ServiceRepositoryImpl implements ServiceRepository {
         searchFilters: {'title': query},
       );
       
-      return results.map((e) => Service.fromJson(e)).toList();
+      return results.map(Service.fromJson).toList();
     } catch (e) {
       throw ServerException('Search failed: $e');
     }
@@ -142,7 +142,7 @@ class ServiceRepositoryImpl implements ServiceRepository {
         table: 'services',
         filters: {'user_id': currentUser.id},
       );
-      return results.map((e) => Service.fromJson(e)).toList();
+      return results.map(Service.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch your services: $e');
     }

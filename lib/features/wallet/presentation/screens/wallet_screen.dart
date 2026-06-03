@@ -11,7 +11,7 @@ import '../../../../core/widgets/walking_worker_loader.dart';
 import '../providers/wallet_provider.dart';
 
 class WalletScreen extends ConsumerWidget {
-  const WalletScreen({Key? key}) : super(key: key);
+  const WalletScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,7 +106,7 @@ class WalletScreen extends ConsumerWidget {
                       data: (requests) {
                         final pendingAmount = requests
                             .where((r) => r.status == 'pending')
-                            .fold(0.0, (sum, r) => sum + r.amount);
+                            .fold(0, (sum, r) => sum + r.amount);
                         return _buildStatBox('Pending', currencyFormat.format(pendingAmount));
                       },
                       loading: () => _buildStatBox('Pending', '...'),
@@ -147,9 +147,7 @@ class WalletScreen extends ConsumerWidget {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: transactions.length,
-                        itemBuilder: (context, index) {
-                          return _buildTransactionItem(transactions[index], currentUserId);
-                        },
+                        itemBuilder: (context, index) => _buildTransactionItem(transactions[index], currentUserId),
                       ),
                 loading: () => const Center(
                   child: Padding(
@@ -189,7 +187,7 @@ class WalletScreen extends ConsumerWidget {
                         },
                       ),
                 loading: () => const Center(child: Padding(
-                  padding: EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(),
                 )),
                 error: (err, _) => Center(child: Text('Error: $err')),
@@ -244,7 +242,7 @@ class WalletScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -259,8 +257,7 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatBox(String label, String amount) {
-    return Container(
+  Widget _buildStatBox(String label, String amount) => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -276,7 +273,6 @@ class WalletScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
 
   Widget _buildTransactionItem(Transaction tx, String? currentUserId) {
     final currencyFormat = NumberFormat.currency(symbol: 'R ', decimalDigits: 2);
@@ -309,10 +305,10 @@ class WalletScreen extends ConsumerWidget {
             height: 40,
             decoration: BoxDecoration(
               color: tx.type == 'escrow' 
-                ? AppColors.primary.withValues(alpha: 0.1)
+                ? AppColors.primary.withOpacity(0.1)
                 : isIncoming
-                  ? AppColors.success.withValues(alpha: 0.1)
-                  : AppColors.error.withValues(alpha: 0.1),
+                  ? AppColors.success.withOpacity(0.1)
+                  : AppColors.error.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -362,10 +358,8 @@ class WalletScreen extends ConsumerWidget {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
+      builder: (context) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
               backgroundColor: AppColors.surface,
               title: const Text('Cash In', style: TextStyle(color: AppColors.textPrimary)),
               content: Column(
@@ -392,10 +386,8 @@ class WalletScreen extends ConsumerWidget {
                 TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                 ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cash In')),
               ],
-            );
-          }
-        );
-      },
+            )
+        ),
     );
 
     if (confirmed != true) return;
@@ -455,8 +447,7 @@ class WalletScreen extends ConsumerWidget {
     }
   }
 
-  Widget _buildGatewayTile(String name, String sub, String selected, ValueChanged<String?> onChanged) {
-    return RadioListTile<String>(
+  Widget _buildGatewayTile(String name, String sub, String selected, ValueChanged<String?> onChanged) => RadioListTile<String>(
       title: Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
       subtitle: Text(sub, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
       value: name,
@@ -465,7 +456,6 @@ class WalletScreen extends ConsumerWidget {
       activeColor: AppColors.primary,
       contentPadding: EdgeInsets.zero,
     );
-  }
 
   Future<void> _showWithdrawDialog(BuildContext context, WidgetRef ref) async {
     final amountController = TextEditingController();
@@ -473,16 +463,14 @@ class WalletScreen extends ConsumerWidget {
     final accController = TextEditingController();
     final branchController = TextEditingController();
     String selectedBank = 'Absa';
-    String accType = 'Savings';
+    const String accType = 'Savings';
 
     final banks = ['Absa', 'Capitec', 'FNB', 'Nedbank', 'Standard Bank', 'TymeBank', 'Discovery Bank'];
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
+      builder: (context) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
               backgroundColor: AppColors.surface,
               title: const Text('Withdrawal Request', style: TextStyle(color: AppColors.textPrimary)),
               content: SingleChildScrollView(
@@ -528,10 +516,8 @@ class WalletScreen extends ConsumerWidget {
                 TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                 ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Submit Request')),
               ],
-            );
-          }
-        );
-      },
+            )
+        ),
     );
 
     if (confirmed != true) return;

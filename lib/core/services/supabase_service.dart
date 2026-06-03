@@ -5,20 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../errors/app_exceptions.dart';
 
 /// Supabase service provider
-final supabaseServiceProvider = Provider<SupabaseService>((ref) {
-  return SupabaseService();
-});
+final supabaseServiceProvider = Provider<SupabaseService>((ref) => SupabaseService());
 
 /// Service for Supabase operations
 class SupabaseService {
   static Supabase? _instance;
 
-  SupabaseClient get client {
-    if (Supabase.instance.client == null) {
-      throw ServerException('Supabase not initialized');
-    }
-    return Supabase.instance.client;
-  }
+  SupabaseClient get client => Supabase.instance.client;
 
   User? get currentUser => client.auth.currentUser;
 

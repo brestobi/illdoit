@@ -6,15 +6,15 @@ import '../../../../core/repositories/user_repository_impl.dart';
 
 /// State for authentication
 class AuthState {
-  final bool isLoading;
-  final String? errorMessage;
-  final supabase.User? user;
 
   AuthState({
     this.isLoading = false,
     this.errorMessage,
     this.user,
   });
+  final bool isLoading;
+  final String? errorMessage;
+  final supabase.User? user;
 
   bool get isAuthenticated => user != null;
 
@@ -22,19 +22,15 @@ class AuthState {
     bool? isLoading,
     String? errorMessage,
     supabase.User? user,
-  }) {
-    return AuthState(
+  }) => AuthState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       user: user ?? this.user,
     );
-  }
 }
 
 /// Notifier for authentication state
 class AuthNotifier extends StateNotifier<AuthState> {
-  final SupabaseService _supabaseService;
-  final Ref _ref;
 
   AuthNotifier(this._supabaseService, this._ref) : super(AuthState(user: _supabaseService.currentUser)) {
     // Listen to auth state changes
@@ -49,6 +45,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
     });
   }
+  final SupabaseService _supabaseService;
+  final Ref _ref;
 
   /// Sign up with email and password
   Future<void> signUp({

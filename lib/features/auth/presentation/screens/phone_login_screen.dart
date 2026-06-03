@@ -7,7 +7,6 @@ import '../../../../core/utils/validators.dart';
 import '../providers/auth_provider.dart';
 
 class PhoneLoginScreen extends ConsumerStatefulWidget {
-  const PhoneLoginScreen({Key? key}) : super(key: key);
 
   @override
   ConsumerState<PhoneLoginScreen> createState() => _PhoneLoginScreenState();

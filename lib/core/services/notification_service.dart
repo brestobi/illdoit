@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../router/app_router.dart';
@@ -15,17 +14,17 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 
 /// Service for handling push notifications
 class NotificationService {
+
+  NotificationService(this._supabaseService, this._ref);
   final SupabaseService _supabaseService;
   final Ref _ref;
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
-  NotificationService(this._supabaseService, this._ref);
-
   /// Initialize notifications
   Future<void> initialize() async {
     // 1. Request permissions
-    NotificationSettings settings = await _fcm.requestPermission(
+    final NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       badge: true,
       sound: true,
@@ -71,7 +70,7 @@ class NotificationService {
     });
     
     // Check if app was opened from a terminated state via notification
-    RemoteMessage? initialMessage = await _fcm.getInitialMessage();
+    final RemoteMessage? initialMessage = await _fcm.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(jsonEncode(initialMessage.data));
     }
@@ -129,7 +128,7 @@ class NotificationService {
     if (!_supabaseService.isAuthenticated) return;
 
     try {
-      String? token = await _fcm.getToken();
+      final String? token = await _fcm.getToken();
       if (token != null) {
         log('FCM Token: $token');
         await _supabaseService.update(

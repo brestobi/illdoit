@@ -4,12 +4,11 @@ import '../constants/app_colors.dart';
 import '../router/app_router.dart';
 
 class MainBottomNavBar extends StatelessWidget {
+const MainBottomNavBar({
+  super.key,
+  required this.currentIndex,
+});
   final int currentIndex;
-
-  const MainBottomNavBar({
-    Key? key,
-    required this.currentIndex,
-  }) : super(key: key);
 
   void _onNavTap(BuildContext context, int index) {
     if (index == currentIndex) return;
@@ -34,8 +33,7 @@ class MainBottomNavBar extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
+  Widget build(BuildContext context) => BottomNavigationBar(
       currentIndex: currentIndex,
       type: BottomNavigationBarType.fixed,
       backgroundColor: AppColors.surface,
@@ -70,5 +68,4 @@ class MainBottomNavBar extends StatelessWidget {
         ),
       ],
     );
-  }
 }

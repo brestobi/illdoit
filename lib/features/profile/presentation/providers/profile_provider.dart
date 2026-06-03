@@ -39,14 +39,12 @@ class ProfileNotifier extends AutoDisposeAsyncNotifier<User?> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await userRepository.updateUserProfile(data: updates);
-      return await userRepository.getCurrentUserProfile();
+      return userRepository.getCurrentUserProfile();
     });
   }
 }
 
-final profileProvider = AsyncNotifierProvider.autoDispose<ProfileNotifier, User?>(() {
-  return ProfileNotifier();
-});
+final profileProvider = AsyncNotifierProvider.autoDispose<ProfileNotifier, User?>(ProfileNotifier.new);
 
 /// Provider for any user profile data by ID
 final userProvider = FutureProvider.family<User, String>((ref, userId) async {

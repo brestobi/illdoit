@@ -3,21 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/models/service.dart';
-import '../../../../core/models/user.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/repositories/user_repository_impl.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/services_provider.dart';
 import '../providers/orders_provider.dart';
 
 class ServiceDetailScreen extends ConsumerWidget {
-  final String serviceId;
 
-  const ServiceDetailScreen({
-    Key? key,
+  const ServiceDetailScreen({super.key, 
     required this.serviceId,
-  }) : super(key: key);
+  });
+  final String serviceId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,7 +71,7 @@ class ServiceDetailScreen extends ConsumerWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: AppColors.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -243,9 +239,9 @@ class ServiceDetailScreen extends ConsumerWidget {
 }
 
 class _SellerCard extends ConsumerWidget {
-  final String userId;
 
-  const _SellerCard({Key? key, required this.userId}) : super(key: key);
+  const _SellerCard({required this.userId});
+  final String userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -310,7 +306,7 @@ class _SellerCard extends ConsumerWidget {
         ),
       ),
       loading: () => const SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Text('Error loading seller'),
+      error: (err, stack) => const Text('Error loading seller'),
     );
   }
 }

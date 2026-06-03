@@ -10,7 +10,7 @@ import '../../../../core/utils/validators.dart';
 import '../providers/profile_provider.dart';
 
 class IdVerificationScreen extends ConsumerStatefulWidget {
-  const IdVerificationScreen({Key? key}) : super(key: key);
+  const IdVerificationScreen({super.key});
 
   @override
   ConsumerState<IdVerificationScreen> createState() => _IdVerificationScreenState();
@@ -309,8 +309,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     );
   }
 
-  Widget _buildStepHeader(String title, String subtitle) {
-    return Column(
+  Widget _buildStepHeader(String title, String subtitle) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -325,10 +324,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         const SizedBox(height: 32),
       ],
     );
-  }
 
-  Widget _buildPersonalInfoStep() {
-    return SingleChildScrollView(
+  Widget _buildPersonalInfoStep() => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Form(
         key: _personalFormKey,
@@ -373,10 +370,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildBankDetailsStep(AsyncValue<List<String>> banksAsync) {
-    return SingleChildScrollView(
+  Widget _buildBankDetailsStep(AsyncValue<List<String>> banksAsync) => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Form(
         key: _bankFormKey,
@@ -439,10 +434,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildIdTypeStep(AsyncValue<List<String>> idTypesAsync) {
-    return SingleChildScrollView(
+  Widget _buildIdTypeStep(AsyncValue<List<String>> idTypesAsync) => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,21 +459,19 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ],
       ),
     );
-  }
 
   Widget _buildSelectionCard({
     required String title,
     required bool isSelected,
     required VoidCallback onTap,
     required IconData icon,
-  }) {
-    return GestureDetector(
+  }) => GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.borderColor,
@@ -506,10 +497,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildFrontImageStep() {
-    return SingleChildScrollView(
+  Widget _buildFrontImageStep() => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -530,10 +519,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ],
       ),
     );
-  }
 
-  Widget _buildBackImageStep() {
-    return SingleChildScrollView(
+  Widget _buildBackImageStep() => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,10 +538,8 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ],
       ),
     );
-  }
 
-  Widget _buildSelfieStep() {
-    return SingleChildScrollView(
+  Widget _buildSelfieStep() => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,7 +562,6 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
         ],
       ),
     );
-  }
 
   Widget _buildImageUploadArea({
     required File? file,
@@ -585,8 +569,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     required IconData placeholderIcon,
     required String placeholderText,
     bool isCircular = false,
-  }) {
-    return GestureDetector(
+  }) => GestureDetector(
       onTap: onTap,
       child: Container(
         height: 250,
@@ -611,18 +594,15 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
             ),
       ),
     );
-  }
 
-  Widget _buildGuidelineItem(IconData icon, String text) {
-    return Padding(
+  Widget _buildGuidelineItem(IconData icon, String text) => Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.primary.withValues(alpha: 0.7)),
+          Icon(icon, size: 18, color: AppColors.primary.withOpacity(0.7)),
           const SizedBox(width: 12),
           Text(text, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
         ],
       ),
     );
-  }
 }

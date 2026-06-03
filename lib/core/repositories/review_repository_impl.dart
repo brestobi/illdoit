@@ -5,9 +5,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of ReviewRepository using Supabase
 class ReviewRepositoryImpl implements ReviewRepository {
-  final SupabaseService _supabaseService;
 
   ReviewRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<Map<String, dynamic>> createReview({

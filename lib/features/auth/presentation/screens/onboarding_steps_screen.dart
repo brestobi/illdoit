@@ -10,7 +10,6 @@ import '../../../../core/models/location.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 class OnboardingStepsScreen extends ConsumerStatefulWidget {
-  const OnboardingStepsScreen({Key? key}) : super(key: key);
 
   @override
   ConsumerState<OnboardingStepsScreen> createState() => _OnboardingStepsScreenState();
@@ -123,7 +122,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
           children: [
             // Progress Bar
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
                   Row(
@@ -174,7 +173,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
 
             // Bottom Navigation
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Row(
                 children: [
                   if (_currentStep > 0)
@@ -214,8 +213,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
     );
   }
 
-  Widget _buildRoleSelectionStep() {
-    return SingleChildScrollView(
+  Widget _buildRoleSelectionStep() => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +255,6 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
         ],
       ),
     );
-  }
 
   Widget _buildRoleCard({
     required String id,
@@ -271,7 +268,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.borderColor,
@@ -324,8 +321,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
     );
   }
 
-  Widget _buildJobPreferenceStep() {
-    return SingleChildScrollView(
+  Widget _buildJobPreferenceStep() => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,7 +363,6 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
         ],
       ),
     );
-  }
 
   Widget _buildPreferenceCard({
     required String id,
@@ -381,7 +376,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.borderColor,
@@ -419,8 +414,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
     );
   }
 
-  Widget _buildBasicInfoStep(AsyncValue<List<AppLocation>> locationsAsync) {
-    return SingleChildScrollView(
+  Widget _buildBasicInfoStep(AsyncValue<List<AppLocation>> locationsAsync) => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,7 +446,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
           locationsAsync.when(
             data: (locations) => DropdownButtonFormField<String>(
               value: _locationController.text.isNotEmpty && 
-                     locations.any((l) => "${l.name}, ${l.province}" == _locationController.text)
+                     locations.any((l) => '${l.name}, ${l.province}' == _locationController.text)
                   ? _locationController.text 
                   : null,
               decoration: const InputDecoration(
@@ -461,7 +455,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
               ),
               dropdownColor: AppColors.surface,
               items: locations.map((loc) {
-                final val = "${loc.name}, ${loc.province}";
+                final val = '${loc.name}, ${loc.province}';
                 return DropdownMenuItem(
                   value: val,
                   child: Text(val, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
@@ -494,10 +488,8 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
         ],
       ),
     );
-  }
 
-  Widget _buildSkillsStep(AsyncValue<List<String>> skillsAsync) {
-    return SingleChildScrollView(
+  Widget _buildSkillsStep(AsyncValue<List<String>> skillsAsync) => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,5 +557,4 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
         ],
       ),
     );
-  }
 }

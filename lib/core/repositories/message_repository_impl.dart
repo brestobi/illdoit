@@ -6,9 +6,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of MessageRepository using Supabase
 class MessageRepositoryImpl implements MessageRepository {
-  final SupabaseService _supabaseService;
 
   MessageRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<Message> sendMessage({
@@ -94,7 +94,7 @@ class MessageRepositoryImpl implements MessageRepository {
           .or('sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}');
 
       final userIds = <String>{};
-      for (var row in (results as List)) {
+      for (final row in results as List) {
         final map = Map<String, dynamic>.from(row as Map);
         if (map['sender_id'] != currentUser.id) userIds.add(map['sender_id'] as String);
         if (map['receiver_id'] != currentUser.id) userIds.add(map['receiver_id'] as String);
@@ -144,14 +144,12 @@ class MessageRepositoryImpl implements MessageRepository {
         .from('messages')
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: true)
-        .map((event) {
-          return event
+        .map((event) => event
               .where((row) =>
                   (row['sender_id'] == currentUser.id && row['receiver_id'] == otherUserId) ||
                   (row['sender_id'] == otherUserId && row['receiver_id'] == currentUser.id))
-              .map((e) => Message.fromJson(e))
-              .toList();
-        });
+              .map(Message.fromJson)
+              .toList());
   }
 
   @override
@@ -169,7 +167,7 @@ class MessageRepositoryImpl implements MessageRepository {
         .order('created_at', ascending: false)
         .asyncMap((event) async {
           final userIds = <String>{};
-          for (var row in event) {
+          for (final row in event) {
             if (row['sender_id'] == currentUser.id) {
               userIds.add(row['receiver_id'] as String);
             } else if (row['receiver_id'] == currentUser.id) {

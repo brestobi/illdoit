@@ -4,14 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
 import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/utils/validators.dart';
 import '../providers/profile_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -225,12 +224,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         labelText: 'Location (Province)',
                         prefixIcon: Icon(Icons.location_on_outlined),
                       ),
-                      items: provinces.map((String province) {
-                        return DropdownMenuItem<String>(
+                      items: provinces.map((String province) => DropdownMenuItem<String>(
                           value: province,
                           child: Text(province),
-                        );
-                      }).toList(),
+                        )).toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedProvince = newValue;

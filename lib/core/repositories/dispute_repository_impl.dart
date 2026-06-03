@@ -5,9 +5,9 @@ import '../errors/app_exceptions.dart';
 import 'abstract_repositories.dart';
 
 class DisputeRepositoryImpl implements DisputeRepository {
-  final SupabaseService _supabaseService;
 
   DisputeRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<Dispute?> getDisputeByOrderId({required String orderId}) async {
@@ -35,7 +35,7 @@ class DisputeRepositoryImpl implements DisputeRepository {
         filters: {'raised_by': currentUser.id},
       );
 
-      return results.map((e) => Dispute.fromJson(e)).toList();
+      return results.map(Dispute.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch my disputes: $e');
     }

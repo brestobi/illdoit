@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../core/theme/theme_provider.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../providers/profile_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -174,7 +172,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       'Version $_version ($_buildNumber)',
                       style: TextStyle(
                         fontSize: 12,
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                        color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -231,7 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: theme.primaryColor.withValues(alpha: 0.1),
+          color: theme.primaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: theme.primaryColor, size: 20),
@@ -264,7 +262,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: (theme.textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.1),
+          color: (theme.textTheme.bodySmall?.color ?? Colors.grey).withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20),

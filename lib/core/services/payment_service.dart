@@ -4,9 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../errors/app_exceptions.dart';
 
 /// Provider for PaymentService
-final paymentServiceProvider = Provider<PaymentService>((ref) {
-  return PaymentService();
-});
+final paymentServiceProvider = Provider<PaymentService>((ref) => PaymentService());
 
 /// Service to handle payment gateway integrations
 class PaymentService {

@@ -10,12 +10,11 @@ import '../providers/job_applications_provider.dart';
 import '../providers/jobs_provider.dart';
 
 class ManageApplicationsScreen extends ConsumerWidget {
-  final String jobId;
 
-  const ManageApplicationsScreen({
-    Key? key,
+  const ManageApplicationsScreen({super.key, 
     required this.jobId,
-  }) : super(key: key);
+  });
+  final String jobId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,7 +82,7 @@ class ManageApplicationsScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.assignment_late_outlined, size: 64, color: AppColors.textTertiary),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Text(
                             'No applications yet.',
                             style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
@@ -96,9 +95,7 @@ class ManageApplicationsScreen extends ConsumerWidget {
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: applications.length,
-                    itemBuilder: (context, index) {
-                      return _buildApplicationCard(context, ref, applications[index]);
-                    },
+                    itemBuilder: (context, index) => _buildApplicationCard(context, ref, applications[index]),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -113,8 +110,7 @@ class ManageApplicationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildApplicationCard(BuildContext context, WidgetRef ref, JobApplication application) {
-    return Container(
+  Widget _buildApplicationCard(BuildContext context, WidgetRef ref, JobApplication application) => Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -194,8 +190,8 @@ class ManageApplicationsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: application.status == ApplicationStatus.accepted 
-                        ? AppColors.success.withValues(alpha: 0.1) 
-                        : AppColors.error.withValues(alpha: 0.1),
+                        ? AppColors.success.withOpacity(0.1) 
+                        : AppColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
@@ -215,7 +211,6 @@ class ManageApplicationsScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
 
   Future<void> _handleStatusUpdate(WidgetRef ref, String id, ApplicationStatus status) async {
     await ref.read(jobApplicationNotifierProvider.notifier).updateStatus(
@@ -227,9 +222,9 @@ class ManageApplicationsScreen extends ConsumerWidget {
 }
 
 class _ApplicantHeader extends ConsumerWidget {
-  final String userId;
 
-  const _ApplicantHeader({Key? key, required this.userId}) : super(key: key);
+  const _ApplicantHeader({required this.userId});
+  final String userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -3,20 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/router/app_router.dart';
-import '../../../../core/models/user.dart';
 import '../providers/profile_provider.dart';
 import '../providers/review_provider.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../features/services/presentation/providers/services_provider.dart';
 
 class PublicProfileScreen extends ConsumerWidget {
-  final String userId;
 
-  const PublicProfileScreen({
-    Key? key,
+  const PublicProfileScreen({super.key, 
     required this.userId,
-  }) : super(key: key);
+  });
+  final String userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -148,7 +145,7 @@ class PublicProfileScreen extends ConsumerWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: user.skills.map((s) => _buildSkillChip(s)).toList(),
+                  children: user.skills.map(_buildSkillChip).toList(),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -172,7 +169,7 @@ class PublicProfileScreen extends ConsumerWidget {
                     );
                   }
                   return Column(
-                    children: reviews.map((r) => _buildReviewTile(r)).toList(),
+                    children: reviews.map(_buildReviewTile).toList(),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -187,8 +184,7 @@ class PublicProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatCard(String value, String label) {
-    return Column(
+  Widget _buildStatCard(String value, String label) => Column(
       children: [
         Text(
           value,
@@ -208,10 +204,8 @@ class PublicProfileScreen extends ConsumerWidget {
         ),
       ],
     );
-  }
 
-  Widget _buildSkillChip(String skill) {
-    return Chip(
+  Widget _buildSkillChip(String skill) => Chip(
       label: Text(
         skill,
         style: const TextStyle(
@@ -223,7 +217,6 @@ class PublicProfileScreen extends ConsumerWidget {
       backgroundColor: AppColors.surface,
       side: const BorderSide(color: AppColors.borderColor),
     );
-  }
 
   Widget _buildRoleBadge(String userType) {
     String label = 'Viewer';
@@ -237,15 +230,15 @@ class PublicProfileScreen extends ConsumerWidget {
     } else if (userType == 'employer') {
       label = 'Employer';
       icon = Icons.person_add_outlined;
-      color = AppColors.secondary;
+      color = AppColors.blue;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -265,8 +258,7 @@ class PublicProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildReviewTile(Map<String, dynamic> review) {
-    return Container(
+  Widget _buildReviewTile(Map<String, dynamic> review) => Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -300,7 +292,6 @@ class PublicProfileScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
 
   void _showHireBottomSheet(BuildContext context, String userId, String userName) {
     showModalBottomSheet(
@@ -309,8 +300,7 @@ class PublicProfileScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
-        return Container(
+      builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +331,7 @@ class PublicProfileScreen extends ConsumerWidget {
                     data: (services) {
                       if (services.isEmpty) {
                         return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 32.0),
+                          padding: EdgeInsets.symmetric(vertical: 32),
                           child: Center(
                             child: Text(
                               'This user has no active services.',
@@ -378,11 +368,11 @@ class PublicProfileScreen extends ConsumerWidget {
                       );
                     },
                     loading: () => const Padding(
-                      padding: EdgeInsets.all(32.0),
+                      padding: EdgeInsets.all(32),
                       child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (err, stack) => Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(16),
                       child: Center(
                         child: Text(
                           'Error loading services: $err',
@@ -395,8 +385,7 @@ class PublicProfileScreen extends ConsumerWidget {
               ),
             ],
           ),
-        );
-      },
+        ),
     );
   }
 }

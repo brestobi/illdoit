@@ -18,10 +18,9 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../explore/presentation/providers/explore_provider.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../providers/home_provider.dart';
-import '../providers/notification_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -283,12 +282,10 @@ class HomeScreen extends ConsumerWidget {
                               scrollDirection: Axis.horizontal,
                               itemCount: services.length,
                               clipBehavior: Clip.none,
-                              itemBuilder: (context, index) {
-                                return Padding(
+                              itemBuilder: (context, index) => Padding(
                                   padding: const EdgeInsets.only(right: 16),
                                   child: _buildServiceCarouselCard(context, services[index]),
-                                );
-                              },
+                                ),
                             ),
                           ),
                     loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
@@ -306,9 +303,7 @@ class HomeScreen extends ConsumerWidget {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: jobs.length > 3 ? 3 : jobs.length,
-                            itemBuilder: (context, index) {
-                              return _buildJobListItem(context, jobs[index]);
-                            },
+                            itemBuilder: (context, index) => _buildJobListItem(context, jobs[index]),
                           ),
                     loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
                     error: (err, _) => Text('Error: $err'),
@@ -371,9 +366,7 @@ class HomeScreen extends ConsumerWidget {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: workers.length > 5 ? 5 : workers.length,
-                            itemBuilder: (context, index) {
-                              return _buildWorkerListItem(context, workers[index]);
-                            },
+                            itemBuilder: (context, index) => _buildWorkerListItem(context, workers[index]),
                           ),
                     loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
                     error: (err, _) => Text('Error: $err'),
@@ -389,8 +382,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, VoidCallback? onSeeAll) {
-    return Row(
+  Widget _buildSectionHeader(BuildContext context, String title, VoidCallback? onSeeAll) => Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
@@ -412,10 +404,8 @@ class HomeScreen extends ConsumerWidget {
           ),
       ],
     );
-  }
 
-  Widget _buildCategoryItem(BuildContext context, String name, IconData icon, WidgetRef ref) {
-    return ScaleOnTap(
+  Widget _buildCategoryItem(BuildContext context, String name, IconData icon, WidgetRef ref) => ScaleOnTap(
       onTap: () {
         ref.read(selectedCategoryProvider.notifier).state = name;
         context.go(AppRoutes.explore);
@@ -440,10 +430,8 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
 
-  Widget _buildServiceCarouselCard(BuildContext context, Service service) {
-    return ScaleOnTap(
+  Widget _buildServiceCarouselCard(BuildContext context, Service service) => ScaleOnTap(
       onTap: () => context.push(AppRoutes.serviceDetail.replaceFirst(':id', service.id)),
       child: Container(
         width: 240,
@@ -502,10 +490,8 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
 
-  Widget _buildJobListItem(BuildContext context, Job job) {
-    return ScaleOnTap(
+  Widget _buildJobListItem(BuildContext context, Job job) => ScaleOnTap(
       onTap: () => context.push(AppRoutes.jobDetail.replaceFirst(':id', job.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -545,10 +531,8 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
 
-  Widget _buildWorkerListItem(BuildContext context, User worker) {
-    return ScaleOnTap(
+  Widget _buildWorkerListItem(BuildContext context, User worker) => ScaleOnTap(
       onTap: () => context.push(AppRoutes.publicProfile.replaceFirst(':id', worker.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -599,10 +583,8 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
 
-  Widget _buildEmptyState(BuildContext context, String message) {
-    return Container(
+  Widget _buildEmptyState(BuildContext context, String message) => Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -611,5 +593,4 @@ class HomeScreen extends ConsumerWidget {
       ),
       child: Center(child: Text(message, style: Theme.of(context).textTheme.bodySmall)),
     );
-  }
 }

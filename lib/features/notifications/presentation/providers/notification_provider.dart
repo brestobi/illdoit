@@ -20,9 +20,9 @@ final unreadNotificationCountProvider = Provider<int>((ref) {
 
 /// Notifier for notification actions
 class NotificationNotifier extends StateNotifier<AsyncValue<void>> {
-  final NotificationRepositoryImpl _repository;
 
   NotificationNotifier(this._repository) : super(const AsyncValue.data(null));
+  final NotificationRepositoryImpl _repository;
 
   Future<void> markAsRead(String notificationId) async {
     state = const AsyncValue.loading();

@@ -11,7 +11,7 @@ import '../providers/review_provider.dart';
 import '../../../wallet/presentation/providers/wallet_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,7 +90,7 @@ class ProfileScreen extends ConsumerWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.2),
+                                color: AppColors.primary.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Row(
@@ -186,7 +186,7 @@ class ProfileScreen extends ConsumerWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: user.skills.map((s) => _buildSkillChip(s)).toList(),
+                  children: user.skills.map(_buildSkillChip).toList(),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -292,8 +292,7 @@ class ProfileScreen extends ConsumerWidget {
   );
 }
 
-Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
-  return Row(
+Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceAround,
     children: [
       _buildStatCard(user.completedJobs.toString(), 'Completed'),
@@ -305,10 +304,8 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
       ),
     ],
   );
-}
 
-  Widget _buildStatCard(String value, String label) {
-    return Column(
+  Widget _buildStatCard(String value, String label) => Column(
       children: [
         Text(
           value,
@@ -328,10 +325,8 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
         ),
       ],
     );
-  }
 
-  Widget _buildSkillChip(String skill) {
-    return Chip(
+  Widget _buildSkillChip(String skill) => Chip(
       label: Text(
         skill,
         style: const TextStyle(
@@ -343,7 +338,6 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
       backgroundColor: AppColors.surface,
       side: const BorderSide(color: AppColors.borderColor),
     );
-  }
 
   Widget _buildRoleBadge(String userType) {
     String label = 'Viewer';
@@ -357,15 +351,15 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
     } else if (userType == 'employer') {
       label = 'Employer';
       icon = Icons.person_add_outlined;
-      color = AppColors.secondary;
+      color = AppColors.blue;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -385,8 +379,7 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
     );
   }
 
-  Widget _buildReviewSection(AsyncValue<List<Map<String, dynamic>>> reviewsAsync) {
-    return Container(
+  Widget _buildReviewSection(AsyncValue<List<Map<String, dynamic>>> reviewsAsync) => Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -415,7 +408,7 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
                 );
               }
               return Column(
-                children: reviews.take(3).map((review) => _buildReviewTile(review)).toList(),
+                children: reviews.take(3).map(_buildReviewTile).toList(),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -427,7 +420,6 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
         ],
       ),
     );
-  }
 
   Widget _buildReviewTile(Map<String, dynamic> review) {
     final rating = review['rating']?.toString() ?? '0';
@@ -482,8 +474,7 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
     );
   }
 
-  Widget _buildWorkCard() {
-    return Container(
+  Widget _buildWorkCard() => Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -502,11 +493,11 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Company Logo Design',
                   style: TextStyle(
                     fontSize: 14,
@@ -514,8 +505,8 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   'Completed 2 weeks ago',
                   style: TextStyle(
                     fontSize: 12,
@@ -532,5 +523,4 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) {
         ],
       ),
     );
-  }
 }

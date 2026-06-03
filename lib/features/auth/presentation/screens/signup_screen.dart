@@ -8,7 +8,6 @@ import '../../../../core/widgets/app_animations.dart';
 import '../providers/auth_provider.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
-  const SignupScreen({Key? key}) : super(key: key);
 
   @override
   ConsumerState<SignupScreen> createState() => _SignupScreenState();

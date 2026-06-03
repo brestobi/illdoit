@@ -7,9 +7,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of TransactionRepository using Supabase
 class TransactionRepositoryImpl implements TransactionRepository {
-  final SupabaseService _supabaseService;
 
   TransactionRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<List<Transaction>> getTransactionHistory() async {
@@ -75,9 +75,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
     try {
       final transactions = await getTransactionHistory();
-      double earned = 0.0;
+      double earned = 0;
 
-      for (var tx in transactions) {
+      for (final tx in transactions) {
         if (tx.status == 'completed' && tx.receiverId == currentUser.id) {
           if (tx.type == 'payment' || tx.type == 'escrow_release' || tx.type == 'deposit') {
             earned += tx.amount;
@@ -263,7 +263,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
         filters: {'user_id': currentUser.id},
       );
 
-      return results.map((e) => WithdrawalRequest.fromJson(e)).toList();
+      return results.map(WithdrawalRequest.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch withdrawal requests: $e');
     }

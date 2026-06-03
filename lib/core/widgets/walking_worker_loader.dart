@@ -3,9 +3,6 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../constants/app_colors.dart';
 
 class WalkingWorkerLoader extends StatelessWidget {
-  final double size;
-  final Color? color;
-  final String? label;
 
   const WalkingWorkerLoader({
     super.key,
@@ -13,10 +10,12 @@ class WalkingWorkerLoader extends StatelessWidget {
     this.color,
     this.label,
   });
+  final double size;
+  final Color? color;
+  final String? label;
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+  Widget build(BuildContext context) => Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -39,5 +38,4 @@ class WalkingWorkerLoader extends StatelessWidget {
         ],
       ],
     );
-  }
 }

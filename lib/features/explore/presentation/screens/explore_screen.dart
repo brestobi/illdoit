@@ -7,7 +7,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/models/user.dart';
-import '../../../../core/models/location.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/repositories/category_repository.dart';
@@ -15,7 +14,7 @@ import '../../../../core/utils/category_utils.dart';
 import '../providers/explore_provider.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
-  const ExploreScreen({Key? key}) : super(key: key);
+  const ExploreScreen({super.key});
 
   @override
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
@@ -54,22 +53,31 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Search Bar
-            TextField(
-              controller: _searchController,
-              onChanged: (value) =>
-                  ref.read(searchQueryProvider.notifier).state = value,
-              decoration: InputDecoration(
-                hintText: 'Search services or jobs...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          ref.read(searchQueryProvider.notifier).state = '';
-                        },
-                      )
-                    : null,
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) =>
+                    ref.read(searchQueryProvider.notifier).state = value,
+                decoration: InputDecoration(
+                  hintText: 'Search services or jobs...',
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textTertiary),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: AppColors.textTertiary),
+                          onPressed: () {
+                            _searchController.clear();
+                            ref.read(searchQueryProvider.notifier).state = '';
+                          },
+                        )
+                      : null,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -137,24 +145,24 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             ),
             const SizedBox(height: 12),
             categoriesAsync.when(
-              data: (categories) => GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1,
+              data: (categories) => SizedBox(
+                height: 100,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final cat = categories[index];
+                    return SizedBox(
+                      width: 80,
+                      child: _buildCategoryCard(
+                        cat.name,
+                        CategoryUtils.getIconForCategory(cat.name),
+                        selectedCategory == cat.name,
+                      ),
+                    );
+                  },
                 ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final cat = categories[index];
-                  return _buildCategoryCard(
-                    cat.name,
-                    CategoryUtils.getIconForCategory(cat.name),
-                    selectedCategory == cat.name,
-                  );
-                },
               ),
               loading: () => const Center(
                 child: Padding(
@@ -225,8 +233,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     );
   }
 
-  Widget _buildCategoryCard(String name, IconData icon, bool isSelected) {
-    return GestureDetector(
+  Widget _buildCategoryCard(String name, IconData icon, bool isSelected) => GestureDetector(
       onTap: () => ref.read(selectedCategoryProvider.notifier).state = name,
       child: Container(
         decoration: BoxDecoration(
@@ -258,10 +265,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildEmptyState() {
-    return Center(
+  Widget _buildEmptyState() => Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 32),
         child: Column(
@@ -276,10 +281,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildServiceCard(Service service) {
-    return GestureDetector(
+  Widget _buildServiceCard(Service service) => GestureDetector(
       onTap: () => context.push(AppRoutes.serviceDetail.replaceFirst(':id', service.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -351,10 +354,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildJobCard(Job job) {
-    return GestureDetector(
+  Widget _buildJobCard(Job job) => GestureDetector(
       onTap: () => context.push(AppRoutes.jobDetail.replaceFirst(':id', job.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -410,10 +411,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildUserCard(User user) {
-    return GestureDetector(
+  Widget _buildUserCard(User user) => GestureDetector(
       onTap: () => context.push(AppRoutes.publicProfile.replaceFirst(':id', user.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -500,5 +499,4 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ),
       ),
     );
-  }
 }

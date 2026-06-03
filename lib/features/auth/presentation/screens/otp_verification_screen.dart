@@ -6,14 +6,14 @@ import '../../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
-  final String identifier;
-  final bool isEmail;
 
   const OtpVerificationScreen({
-    Key? key,
+    super.key,
     required this.identifier,
     this.isEmail = false,
-  }) : super(key: key);
+  });
+  final String identifier;
+  final bool isEmail;
 
   @override
   ConsumerState<OtpVerificationScreen> createState() => _OtpVerificationScreenState();

@@ -6,7 +6,7 @@ import '../providers/job_applications_provider.dart';
 import 'package:intl/intl.dart';
 
 class MyApplicationsScreen extends ConsumerWidget {
-  const MyApplicationsScreen({Key? key}) : super(key: key);
+  const MyApplicationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,12 +53,11 @@ class MyApplicationsScreen extends ConsumerWidget {
 }
 
 class _ApplicationTile extends ConsumerWidget {
-  final JobApplication application;
 
   const _ApplicationTile({
-    Key? key,
     required this.application,
-  }) : super(key: key);
+  });
+  final JobApplication application;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -196,9 +195,9 @@ class _ApplicationTile extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
         status.name.toUpperCase(),

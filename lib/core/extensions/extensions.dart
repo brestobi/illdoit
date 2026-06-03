@@ -19,28 +19,18 @@ extension StringExtension on String {
     return '${this[0].toUpperCase()}${substring(1)}';
   }
 
-  String toTitleCase() {
-    return split(' ').map((word) => word.capitalize()).join(' ');
-  }
+  String toTitleCase() => split(' ').map((word) => word.capitalize()).join(' ');
 }
 
 /// DateTime extensions
 extension DateTimeExtension on DateTime {
-  String formatShort() {
-    return DateFormat.yMd().format(this);
-  }
+  String formatShort() => DateFormat.yMd().format(this);
 
-  String formatMedium() {
-    return DateFormat.yMMMMd().format(this);
-  }
+  String formatMedium() => DateFormat.yMMMMd().format(this);
 
-  String formatTime() {
-    return DateFormat.Hm().format(this);
-  }
+  String formatTime() => DateFormat.Hm().format(this);
 
-  String formatFull() {
-    return DateFormat.yMMMMd('en_US').add_jm().format(this);
-  }
+  String formatFull() => DateFormat.yMMMMd('en_US').add_jm().format(this);
 
   bool isToday() {
     final now = DateTime.now();
@@ -74,23 +64,17 @@ extension DateTimeExtension on DateTime {
 
 /// Number extensions
 extension NumExtension on num {
-  String toCurrency({String symbol = 'R'}) {
-    return '$symbol ${toStringAsFixed(2)}';
-  }
+  String toCurrency({String symbol = 'R'}) => '$symbol ${toStringAsFixed(2)}';
 
-  String toFormattedString() {
-    return toString().replaceAllMapped(
+  String toFormattedString() => toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
-  }
 }
 
 /// List extensions
 extension ListExtension<T> on List<T> {
-  List<T> unique() {
-    return toSet().toList();
-  }
+  List<T> unique() => toSet().toList();
 
   void insertOrUpdate(T item, bool Function(T) condition) {
     final index = indexWhere(condition);
@@ -106,9 +90,7 @@ extension ListExtension<T> on List<T> {
 extension MapExtension<K, V> on Map<K, V> {
   V? getOrNull(K key) => this[key];
 
-  Map<K, V> filterByValue(bool Function(V) condition) {
-    return Map.fromEntries(
+  Map<K, V> filterByValue(bool Function(V) condition) => Map.fromEntries(
       entries.where((entry) => condition(entry.value)),
     );
-  }
 }

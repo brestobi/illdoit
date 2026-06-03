@@ -10,9 +10,6 @@ class AppAnimations {
 }
 
 class ScaleOnTap extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onTap;
-  final double scale;
 
   const ScaleOnTap({
     super.key,
@@ -20,6 +17,9 @@ class ScaleOnTap extends StatefulWidget {
     this.onTap,
     this.scale = 0.95,
   });
+  final Widget child;
+  final VoidCallback? onTap;
+  final double scale;
 
   @override
   State<ScaleOnTap> createState() => _ScaleOnTapState();
@@ -36,7 +36,7 @@ class _ScaleOnTapState extends State<ScaleOnTap> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _animation = Tween<double>(begin: 1.0, end: widget.scale).animate(
+    _animation = Tween<double>(begin: 1, end: widget.scale).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -48,8 +48,7 @@ class _ScaleOnTapState extends State<ScaleOnTap> with SingleTickerProviderStateM
   }
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
+  Widget build(BuildContext context) => GestureDetector(
       onTapDown: (_) {
         if (widget.onTap != null) {
           _controller.forward();
@@ -72,18 +71,17 @@ class _ScaleOnTapState extends State<ScaleOnTap> with SingleTickerProviderStateM
         child: widget.child,
       ),
     );
-  }
 }
 
 class FadeInAnimation extends StatefulWidget {
-  final Widget child;
-  final Duration delay;
 
   const FadeInAnimation({
     super.key,
     required this.child,
     this.delay = Duration.zero,
   });
+  final Widget child;
+  final Duration delay;
 
   @override
   State<FadeInAnimation> createState() => _FadeInAnimationState();
@@ -102,17 +100,17 @@ class _FadeInAnimationState extends State<FadeInAnimation> with SingleTickerProv
       duration: const Duration(milliseconds: 600),
     );
 
-    _opacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _opacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeOut),
+        curve: const Interval(0, 1, curve: Curves.easeOut),
       ),
     );
 
     _slide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 1.0, curve: Curves.easeOutCubic),
+        curve: const Interval(0, 1, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -128,13 +126,11 @@ class _FadeInAnimationState extends State<FadeInAnimation> with SingleTickerProv
   }
 
   @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
+  Widget build(BuildContext context) => FadeTransition(
       opacity: _opacity,
       child: SlideTransition(
         position: _slide,
         child: widget.child,
       ),
     );
-  }
 }

@@ -6,10 +6,10 @@ import 'abstract_repositories.dart';
 import 'transaction_repository_impl.dart';
 
 class OrderRepositoryImpl implements OrderRepository {
-  final SupabaseService _supabaseService;
-  final Ref _ref;
 
   OrderRepositoryImpl(this._supabaseService, this._ref);
+  final SupabaseService _supabaseService;
+  final Ref _ref;
 
   @override
   Future<Order> createOrder({

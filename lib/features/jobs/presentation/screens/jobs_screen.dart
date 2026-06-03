@@ -10,7 +10,7 @@ import '../../../../core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 
 class JobsScreen extends ConsumerStatefulWidget {
-  const JobsScreen({Key? key}) : super(key: key);
+  const JobsScreen({super.key});
 
   @override
   ConsumerState<JobsScreen> createState() => _JobsScreenState();
@@ -103,9 +103,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                           padding: const EdgeInsets.all(16),
                           physics: const AlwaysScrollableScrollPhysics(),
                           itemCount: filteredJobs.length,
-                          itemBuilder: (context, index) {
-                            return _buildJobCard(filteredJobs[index]);
-                          },
+                          itemBuilder: (context, index) => _buildJobCard(filteredJobs[index]),
                         );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -165,8 +163,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
+  Widget _buildEmptyState() => Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -183,7 +180,6 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
         ],
       ),
     );
-  }
 
   Widget _buildTypeFilter(String id, String label) {
     final isSelected = _selectedType == id;
@@ -256,7 +252,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+                    color: AppColors.primary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(

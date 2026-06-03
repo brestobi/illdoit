@@ -6,23 +6,20 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/job.dart';
-import '../../../../core/models/location.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/repositories/category_repository.dart';
-import '../../../../core/widgets/app_animations.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/jobs_provider.dart';
 
 class CreateJobScreen extends ConsumerStatefulWidget {
-  final Job? job;
 
-  const CreateJobScreen({
-    Key? key,
+  const CreateJobScreen({super.key, 
     this.job,
-  }) : super(key: key);
+  });
+  final Job? job;
 
   @override
   ConsumerState<CreateJobScreen> createState() => _CreateJobScreenState();
@@ -72,8 +69,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
       initialDate: _selectedDeadline,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
+      builder: (context, child) => Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
@@ -83,8 +79,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
             ),
           ),
           child: child!,
-        );
-      },
+        ),
     );
 
     if (picked != null) {
@@ -121,7 +116,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
             return item;
           } else if (item is File) {
             final bytes = await item.readAsBytes();
-            return await jobNotifier.uploadImage(bytes);
+            return jobNotifier.uploadImage(bytes);
           }
           return null;
         }).toList();
@@ -193,7 +188,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
           if (!user.isVerified) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(32.0),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -288,12 +283,10 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                           prefixIcon: Icon(Icons.category_outlined, size: 20),
                         ),
                         dropdownColor: Theme.of(context).colorScheme.surface,
-                        items: categories.map((cat) {
-                          return DropdownMenuItem(
+                        items: categories.map((cat) => DropdownMenuItem(
                             value: cat.name,
                             child: Text(cat.name),
-                          );
-                        }).toList(),
+                          )).toList(),
                         onChanged: (value) {
                           setState(() => _selectedCategory = value);
                         },
@@ -317,8 +310,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                         onSelected: (String selection) {
                           setState(() => _selectedCategory = selection);
                         },
-                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                          return TextFormField(
+                        fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) => TextFormField(
                             controller: controller,
                             focusNode: focusNode,
                             decoration: const InputDecoration(
@@ -327,10 +319,8 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                               prefixIcon: Icon(Icons.search_rounded, size: 20),
                             ),
                             validator: (value) => (value == null || value.isEmpty) ? 'Please select a category' : null,
-                          );
-                        },
-                        optionsViewBuilder: (context, onSelected, options) {
-                          return Align(
+                          ),
+                        optionsViewBuilder: (context, onSelected, options) => Align(
                             alignment: Alignment.topLeft,
                             child: Material(
                               elevation: 4,
@@ -353,8 +343,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                                 ),
                               ),
                             ),
-                          );
-                        },
+                          ),
                       ),
                       loading: () => const LinearProgressIndicator(),
                       error: (err, _) => Text('Error: $err'),
@@ -385,12 +374,10 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
                           prefixIcon: Icon(Icons.location_on_outlined, size: 20),
                         ),
                         dropdownColor: Theme.of(context).colorScheme.surface,
-                        items: locations.map((loc) {
-                          return DropdownMenuItem(
+                        items: locations.map((loc) => DropdownMenuItem(
                             value: loc.name,
                             child: Text(loc.name),
-                          );
-                        }).toList(),
+                          )).toList(),
                         onChanged: (value) {
                           if (value != null) {
                             setState(() => _selectedLocation = value);

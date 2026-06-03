@@ -17,9 +17,9 @@ final mySalesProvider = FutureProvider<List<Order>>((ref) async {
 
 /// Notifier for order actions
 class OrderNotifier extends StateNotifier<AsyncValue<void>> {
-  final OrderRepository _orderRepository;
 
   OrderNotifier(this._orderRepository) : super(const AsyncValue.data(null));
+  final OrderRepository _orderRepository;
 
   Future<void> createOrder({
     required String serviceId,

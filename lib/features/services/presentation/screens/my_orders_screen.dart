@@ -9,7 +9,7 @@ import '../providers/orders_provider.dart';
 import 'package:intl/intl.dart';
 
 class MyOrdersScreen extends ConsumerStatefulWidget {
-  const MyOrdersScreen({Key? key}) : super(key: key);
+  const MyOrdersScreen({super.key});
 
   @override
   ConsumerState<MyOrdersScreen> createState() => _MyOrdersScreenState();
@@ -31,8 +31,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> with SingleTick
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       backgroundColor: AppColors.darkBg,
       appBar: AppBar(
         title: const Text('My Orders'),
@@ -55,18 +54,16 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> with SingleTick
         ],
       ),
     );
-  }
 }
 
 class _OrdersList extends ConsumerWidget {
-  final FutureProvider<List<Order>> provider;
-  final bool isBuyer;
 
   const _OrdersList({
-    Key? key,
     required this.provider,
     required this.isBuyer,
-  }) : super(key: key);
+  });
+  final FutureProvider<List<Order>> provider;
+  final bool isBuyer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -95,14 +92,13 @@ class _OrdersList extends ConsumerWidget {
 }
 
 class _OrderTile extends ConsumerWidget {
-  final Order order;
-  final bool isBuyer;
 
   const _OrderTile({
-    Key? key,
     required this.order,
     required this.isBuyer,
-  }) : super(key: key);
+  });
+  final Order order;
+  final bool isBuyer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -309,9 +305,9 @@ class _OrderTile extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
         status.name.toUpperCase(),

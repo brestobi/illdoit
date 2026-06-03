@@ -10,34 +10,32 @@ final userReviewsProvider = FutureProvider.family<List<Map<String, dynamic>>, St
 
 /// Review creation and state management
 class ReviewState {
-  final bool isLoading;
-  final String? errorMessage;
-  final bool isSuccess;
 
   ReviewState({
     this.isLoading = false,
     this.errorMessage,
     this.isSuccess = false,
   });
+  final bool isLoading;
+  final String? errorMessage;
+  final bool isSuccess;
 
   ReviewState copyWith({
     bool? isLoading,
     String? errorMessage,
     bool? isSuccess,
-  }) {
-    return ReviewState(
+  }) => ReviewState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       isSuccess: isSuccess ?? this.isSuccess,
     );
-  }
 }
 
 class ReviewNotifier extends StateNotifier<ReviewState> {
-  final ReviewRepository _reviewRepository;
-  final Ref _ref;
 
   ReviewNotifier(this._reviewRepository, this._ref) : super(ReviewState());
+  final ReviewRepository _reviewRepository;
+  final Ref _ref;
 
   Future<void> createReview({
     required String targetUserId,

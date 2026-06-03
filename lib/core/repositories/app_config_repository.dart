@@ -1,14 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/supabase_service.dart';
 
-final appConfigRepositoryProvider = Provider<AppConfigRepository>((ref) {
-  return AppConfigRepository(ref.watch(supabaseServiceProvider));
-});
+final appConfigRepositoryProvider = Provider<AppConfigRepository>((ref) => AppConfigRepository(ref.watch(supabaseServiceProvider)));
 
 class AppConfigRepository {
-  final SupabaseService _supabase;
 
   AppConfigRepository(this._supabase);
+  final SupabaseService _supabase;
 
   Future<List<String>> getIdTypes() async {
     final response = await _supabase.query(
@@ -43,18 +41,10 @@ class AppConfigRepository {
   }
 }
 
-final idTypesProvider = FutureProvider<List<String>>((ref) async {
-  return ref.watch(appConfigRepositoryProvider).getIdTypes();
-});
+final idTypesProvider = FutureProvider<List<String>>((ref) async => ref.watch(appConfigRepositoryProvider).getIdTypes());
 
-final supportedBanksProvider = FutureProvider<List<String>>((ref) async {
-  return ref.watch(appConfigRepositoryProvider).getSupportedBanks();
-});
+final supportedBanksProvider = FutureProvider<List<String>>((ref) async => ref.watch(appConfigRepositoryProvider).getSupportedBanks());
 
-final reportReasonsProvider = FutureProvider<List<String>>((ref) async {
-  return ref.watch(appConfigRepositoryProvider).getReportReasons();
-});
+final reportReasonsProvider = FutureProvider<List<String>>((ref) async => ref.watch(appConfigRepositoryProvider).getReportReasons());
 
-final disputeReasonsProvider = FutureProvider<List<String>>((ref) async {
-  return ref.watch(appConfigRepositoryProvider).getDisputeReasons();
-});
+final disputeReasonsProvider = FutureProvider<List<String>>((ref) async => ref.watch(appConfigRepositoryProvider).getDisputeReasons());

@@ -18,10 +18,10 @@ final myApplicationsProvider = FutureProvider<List<JobApplication>>((ref) async 
 
 /// Notifier for job application actions
 class JobApplicationNotifier extends StateNotifier<AsyncValue<void>> {
-  final JobRepository _jobRepository;
-  final Ref _ref;
 
   JobApplicationNotifier(this._jobRepository, this._ref) : super(const AsyncValue.data(null));
+  final JobRepository _jobRepository;
+  final Ref _ref;
 
   Future<void> applyForJob({
     required String jobId,

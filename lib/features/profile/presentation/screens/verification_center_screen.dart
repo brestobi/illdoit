@@ -6,7 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../providers/profile_provider.dart';
 
 class VerificationCenterScreen extends ConsumerWidget {
-  const VerificationCenterScreen({Key? key}) : super(key: key);
+  const VerificationCenterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -192,17 +192,16 @@ class VerificationCenterScreen extends ConsumerWidget {
     bool isPending = false,
     required IconData icon,
     VoidCallback? onTap,
-  }) {
-    return Container(
+  }) => Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isCompleted 
-            ? AppColors.primary.withValues(alpha: 0.5) 
+            ? AppColors.primary.withOpacity(0.5) 
             : isPending 
-              ? AppColors.warning.withValues(alpha: 0.5) 
+              ? AppColors.warning.withOpacity(0.5) 
               : AppColors.borderColor,
         ),
       ),
@@ -212,9 +211,9 @@ class VerificationCenterScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isCompleted 
-              ? AppColors.primary.withValues(alpha: 0.1) 
+              ? AppColors.primary.withOpacity(0.1) 
               : isPending 
-                ? AppColors.warning.withValues(alpha: 0.1) 
+                ? AppColors.warning.withOpacity(0.1) 
                 : AppColors.darkBg,
             shape: BoxShape.circle,
           ),
@@ -247,10 +246,8 @@ class VerificationCenterScreen extends ConsumerWidget {
             : const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       ),
     );
-  }
 
-  Widget _buildWhyItem(IconData icon, String text) {
-    return Padding(
+  Widget _buildWhyItem(IconData icon, String text) => Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
@@ -265,5 +262,4 @@ class VerificationCenterScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
 }

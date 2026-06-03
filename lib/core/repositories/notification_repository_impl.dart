@@ -7,9 +7,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of NotificationRepository using Supabase
 class NotificationRepositoryImpl implements NotificationRepository {
-  final SupabaseService _supabaseService;
 
   NotificationRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<List<AppNotification>> getNotifications() async {

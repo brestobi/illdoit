@@ -3,16 +3,15 @@ import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 
 class AppTheme {
-  static ThemeData get darkTheme {
-    return ThemeData(
+  static ThemeData get darkTheme => ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBg,
       primaryColor: AppColors.primary,
       
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
-        secondary: AppColors.secondary,
+        secondary: AppColors.blue,
         surface: AppColors.surface,
         error: AppColors.error,
         onPrimary: AppColors.darkBg,
@@ -35,7 +34,7 @@ class AppTheme {
         ),
       ),
 
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -130,18 +129,16 @@ class AppTheme {
         },
       ),
     );
-  }
 
-  static ThemeData get lightTheme {
-    return ThemeData(
+  static ThemeData get lightTheme => ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.lightBg,
       primaryColor: AppColors.primary,
       
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
-        secondary: AppColors.secondary,
+        secondary: AppColors.blue,
         surface: AppColors.lightSurface,
         error: AppColors.error,
         onPrimary: AppColors.darkBg,
@@ -165,7 +162,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: AppColors.lightTextPrimary),
       ),
 
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: AppColors.lightSurface,
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.05),
@@ -254,5 +251,4 @@ class AppTheme {
         },
       ),
     );
-  }
 }

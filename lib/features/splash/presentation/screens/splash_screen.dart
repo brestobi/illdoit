@@ -8,7 +8,7 @@ import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -35,8 +35,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       backgroundColor: AppColors.darkBg,
       body: Stack(
         fit: StackFit.expand,
@@ -60,16 +59,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
           ),
           // Content
-          Center(
+          const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Spacer(flex: 3),
+                Spacer(flex: 3),
                 // Logo/App Icon
-                const AppLogo(size: 120),
-                const SizedBox(height: 24),
+                AppLogo(size: 120),
+                SizedBox(height: 24),
                 // App Title
-                const Text(
+                Text(
                   'I\'ll Do It',
                   style: TextStyle(
                     fontSize: 40,
@@ -78,9 +77,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     letterSpacing: -1,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 // Tagline
-                const Text(
+                Text(
                   'South Africa\'s Work & Hustle Platform',
                   style: TextStyle(
                     fontSize: 16,
@@ -89,18 +88,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const Spacer(flex: 2),
+                Spacer(flex: 2),
                 // Loading Indicator
-                const WalkingWorkerLoader(
+                WalkingWorkerLoader(
                   label: 'Preparing your hustle...',
                   color: Colors.white,
                 ),
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
               ],
             ),
           ),
         ],
       ),
     );
-  }
 }

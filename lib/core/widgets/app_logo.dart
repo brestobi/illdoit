@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 class AppLogo extends StatelessWidget {
-  final double size;
-  final bool isRounded;
 
   const AppLogo({
     super.key,
     this.size = 80,
     this.isRounded = true,
   });
+  final double size;
+  final bool isRounded;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
+  Widget build(BuildContext context) => Container(
       width: size,
       height: size,
       decoration: isRounded
@@ -33,5 +32,4 @@ class AppLogo extends StatelessWidget {
               ),
             ),
     );
-  }
 }

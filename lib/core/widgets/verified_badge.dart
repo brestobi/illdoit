@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 class VerifiedBadge extends StatelessWidget {
-  final double size;
-  final bool showText;
 
-  const VerifiedBadge({
-    Key? key,
+  const VerifiedBadge({super.key, 
     this.size = 16,
     this.showText = false,
-  }) : super(key: key);
+  });
+  final double size;
+  final bool showText;
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +16,9 @@ class VerifiedBadge extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.1),
+          color: AppColors.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+          border: Border.all(color: AppColors.primary.withOpacity(0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

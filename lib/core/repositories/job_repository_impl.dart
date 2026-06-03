@@ -7,9 +7,9 @@ import 'abstract_repositories.dart';
 
 /// Concrete implementation of JobRepository using Supabase
 class JobRepositoryImpl implements JobRepository {
-  final SupabaseService _supabaseService;
 
   JobRepositoryImpl(this._supabaseService);
+  final SupabaseService _supabaseService;
 
   @override
   Future<Job> createJob({required Map<String, dynamic> data}) async {
@@ -77,7 +77,7 @@ class JobRepositoryImpl implements JobRepository {
         table: 'jobs',
         filters: filters.isNotEmpty ? filters : null,
       );
-      return results.map((e) => Job.fromJson(e)).toList();
+      return results.map(Job.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch jobs: $e');
     }
@@ -147,7 +147,7 @@ class JobRepositoryImpl implements JobRepository {
         searchFilters: query.isNotEmpty ? {'title': query} : null,
       );
       
-      return results.map((e) => Job.fromJson(e)).toList();
+      return results.map(Job.fromJson).toList();
     } catch (e) {
       throw ServerException('Search failed: $e');
     }
@@ -165,7 +165,7 @@ class JobRepositoryImpl implements JobRepository {
         table: 'jobs',
         filters: {'client_id': currentUser.id},
       );
-      return results.map((e) => Job.fromJson(e)).toList();
+      return results.map(Job.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch your jobs: $e');
     }
@@ -204,7 +204,7 @@ class JobRepositoryImpl implements JobRepository {
         table: 'job_applications',
         filters: {'job_id': jobId},
       );
-      return results.map((e) => JobApplication.fromJson(e)).toList();
+      return results.map(JobApplication.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch applications: $e');
     }
@@ -220,7 +220,7 @@ class JobRepositoryImpl implements JobRepository {
         table: 'job_applications',
         filters: {'applicant_id': currentUser.id},
       );
-      return results.map((e) => JobApplication.fromJson(e)).toList();
+      return results.map(JobApplication.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch your applications: $e');
     }

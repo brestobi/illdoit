@@ -8,7 +8,7 @@ import '../../../../core/models/app_notification.dart';
 import '../providers/notification_provider.dart';
 
 class NotificationsScreen extends ConsumerWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,9 +64,9 @@ class NotificationsScreen extends ConsumerWidget {
 }
 
 class _NotificationItem extends ConsumerWidget {
-  final AppNotification notification;
 
-  const _NotificationItem({Key? key, required this.notification}) : super(key: key);
+  const _NotificationItem({required this.notification});
+  final AppNotification notification;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -6,14 +6,12 @@ import 'package:intl/intl.dart';
 import '../models/order.dart';
 import '../repositories/user_repository_impl.dart';
 
-final invoiceServiceProvider = Provider<InvoiceService>((ref) {
-  return InvoiceService(ref);
-});
+final invoiceServiceProvider = Provider<InvoiceService>(InvoiceService.new);
 
 class InvoiceService {
-  final Ref _ref;
 
   InvoiceService(this._ref);
+  final Ref _ref;
 
   Future<void> generateAndDownloadInvoice(Order order) async {
     final buyer = await _ref.read(userRepositoryProvider).getUserById(userId: order.buyerId);
@@ -24,8 +22,7 @@ class InvoiceService {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
+        build: (pw.Context context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Row(
@@ -68,7 +65,7 @@ class InvoiceService {
                 border: pw.TableBorder.all(),
                 children: [
                   pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColors.grey300),
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                     children: [
                       pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Description', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
                       pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text('Quantity', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
@@ -98,8 +95,7 @@ class InvoiceService {
               pw.Text('Invoice Date: ${DateFormat('yyyy-MM-dd').format(DateTime.now())}'),
               pw.Text('Reference: ${order.id}'),
             ],
-          );
-        },
+          ),
       ),
     );
 

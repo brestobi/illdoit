@@ -15,12 +15,11 @@ import '../providers/jobs_provider.dart';
 import '../providers/job_applications_provider.dart';
 
 class JobDetailScreen extends ConsumerWidget {
-  final String jobId;
 
-  const JobDetailScreen({
-    Key? key,
+  const JobDetailScreen({super.key, 
     required this.jobId,
-  }) : super(key: key);
+  });
+  final String jobId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,7 +68,7 @@ class JobDetailScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.2),
+                        color: AppColors.primary.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -152,9 +151,9 @@ class JobDetailScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                      border: Border.all(color: Colors.orange.withOpacity(0.5)),
                     ),
                     child: const Row(
                       children: [
@@ -188,8 +187,7 @@ class JobDetailScreen extends ConsumerWidget {
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: job.images.length,
-                      itemBuilder: (context, index) {
-                        return Container(
+                      itemBuilder: (context, index) => Container(
                           width: 200,
                           margin: const EdgeInsets.only(right: 12),
                           decoration: BoxDecoration(
@@ -210,8 +208,7 @@ class JobDetailScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                        );
-                      },
+                        ),
                     ),
                   ),
                 ],
@@ -369,12 +366,10 @@ class JobDetailScreen extends ConsumerWidget {
 
     await showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
+      builder: (context) => AlertDialog(
           title: const Text('Leave a Review'),
           content: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
+            builder: (context, setState) => Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
@@ -406,8 +401,7 @@ class JobDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
-              );
-            },
+              ),
           ),
           actions: [
             TextButton(
@@ -442,8 +436,7 @@ class JobDetailScreen extends ConsumerWidget {
               child: const Text('Submit'),
             ),
           ],
-        );
-      },
+        ),
     );
   }
 
@@ -474,8 +467,7 @@ class JobDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
-    return Column(
+  Widget _buildInfoItem(IconData icon, String label, String value) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -499,13 +491,12 @@ class JobDetailScreen extends ConsumerWidget {
         ),
       ],
     );
-  }
 }
 
 class _ApplyDialog extends StatefulWidget {
-  final Job job;
 
-  const _ApplyDialog({Key? key, required this.job}) : super(key: key);
+  const _ApplyDialog({required this.job});
+  final Job job;
 
   @override
   State<_ApplyDialog> createState() => _ApplyDialogState();
@@ -530,8 +521,7 @@ class _ApplyDialogState extends State<_ApplyDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
+  Widget build(BuildContext context) => AlertDialog(
       backgroundColor: AppColors.surface,
       title: const Text("I'll do it", style: TextStyle(color: AppColors.textPrimary)),
       content: SingleChildScrollView(
@@ -578,13 +568,12 @@ class _ApplyDialogState extends State<_ApplyDialog> {
         ),
       ],
     );
-  }
 }
 
 class _ClientCard extends ConsumerWidget {
-  final String userId;
 
-  const _ClientCard({Key? key, required this.userId}) : super(key: key);
+  const _ClientCard({required this.userId});
+  final String userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -9,7 +9,7 @@ import '../providers/services_provider.dart';
 import '../../../../core/router/app_router.dart';
 
 class ServicesScreen extends ConsumerWidget {
-  const ServicesScreen({Key? key}) : super(key: key);
+  const ServicesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,9 +54,7 @@ class ServicesScreen extends ConsumerWidget {
             : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: services.length,
-                itemBuilder: (context, index) {
-                  return _buildServiceCard(context, ref, services[index]);
-                },
+                itemBuilder: (context, index) => _buildServiceCard(context, ref, services[index]),
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(
@@ -77,8 +75,7 @@ class ServicesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceCard(BuildContext context, WidgetRef ref, Service service) {
-    return GestureDetector(
+  Widget _buildServiceCard(BuildContext context, WidgetRef ref, Service service) => GestureDetector(
       onTap: () => context.push(AppRoutes.serviceDetail.replaceFirst(':id', service.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -197,7 +194,7 @@ class ServicesScreen extends ConsumerWidget {
               children: [
                 Chip(
                   label: Text('${service.totalOrders} Orders'),
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
                   labelStyle: const TextStyle(
                     fontSize: 10,
                     color: AppColors.primary,
@@ -209,7 +206,7 @@ class ServicesScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Chip(
                   label: Text('${service.rating}★'),
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  backgroundColor: AppColors.primary.withOpacity(0.1),
                   labelStyle: const TextStyle(
                     fontSize: 10,
                     color: AppColors.primary,
@@ -236,5 +233,4 @@ class ServicesScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
 }

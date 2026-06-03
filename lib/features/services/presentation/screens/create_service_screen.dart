@@ -7,17 +7,15 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/repositories/category_repository.dart';
-import '../../../../core/utils/category_utils.dart';
 import '../../../../core/utils/validators.dart';
 import '../providers/services_provider.dart';
 
 class CreateServiceScreen extends ConsumerStatefulWidget {
-  final Service? service;
 
-  const CreateServiceScreen({
-    Key? key,
+  const CreateServiceScreen({super.key, 
     this.service,
-  }) : super(key: key);
+  });
+  final Service? service;
 
   @override
   ConsumerState<CreateServiceScreen> createState() => _CreateServiceScreenState();
@@ -91,7 +89,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
             return item;
           } else if (item is File) {
             final bytes = await item.readAsBytes();
-            return await serviceNotifier.uploadImage(bytes);
+            return serviceNotifier.uploadImage(bytes);
           }
           return null;
         }).toList();
@@ -269,12 +267,10 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                     labelText: 'Category',
                   ),
                   dropdownColor: AppColors.surface,
-                  items: categories.map((cat) {
-                    return DropdownMenuItem(
+                  items: categories.map((cat) => DropdownMenuItem(
                       value: cat.name,
                       child: Text(cat.name, style: const TextStyle(color: AppColors.textPrimary)),
-                    );
-                  }).toList(),
+                    )).toList(),
                   onChanged: (value) {
                     if (value != null) {
                       setState(() => _selectedCategory = value);

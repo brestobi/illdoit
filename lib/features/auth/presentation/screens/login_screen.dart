@@ -12,7 +12,7 @@ import '../../../../core/widgets/app_animations.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -320,8 +320,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             color: Theme.of(context).textTheme.bodyMedium?.color,
                             fontSize: 14,
                           ),
-                          children: [
-                            const TextSpan(
+                          children: const [
+                            TextSpan(
                               text: 'Sign Up',
                               style: TextStyle(
                                 color: AppColors.primary,
@@ -378,19 +378,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 }
 
 class _SocialButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
 
   const _SocialButton({
     required this.icon,
     required this.label,
     this.onPressed,
   });
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
+  Widget build(BuildContext context) => OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -415,5 +414,4 @@ class _SocialButton extends StatelessWidget {
         ],
       ),
     );
-  }
 }

@@ -11,14 +11,13 @@ import '../providers/chat_provider.dart';
 import 'package:intl/intl.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  final String otherUserId;
-  final String otherUserName;
 
-  const ChatScreen({
-    Key? key,
+  const ChatScreen({super.key, 
     required this.otherUserId,
     required this.otherUserName,
-  }) : super(key: key);
+  });
+  final String otherUserId;
+  final String otherUserName;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -202,8 +201,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Message message, bool isMe) {
-    return Align(
+  Widget _buildMessageBubble(Message message, bool isMe) => Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -265,7 +263,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Text(
               DateFormat('HH:mm').format(message.createdAt),
               style: TextStyle(
-                color: (isMe ? AppColors.darkBg : AppColors.textSecondary).withValues(alpha: 0.7),
+                color: (isMe ? AppColors.darkBg : AppColors.textSecondary).withOpacity(0.7),
                 fontSize: 10,
               ),
             ),
@@ -273,10 +271,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
     );
-  }
 
-  Widget _buildMessageInput() {
-    return Container(
+  Widget _buildMessageInput() => Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -319,5 +315,4 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
     );
-  }
 }

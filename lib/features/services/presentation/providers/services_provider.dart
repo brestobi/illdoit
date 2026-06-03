@@ -23,35 +23,33 @@ final userServicesProvider = FutureProvider.family<List<Service>, String>((ref, 
 
 /// State for Service operations
 class ServiceState {
-  final bool isLoading;
-  final String? errorMessage;
-  final bool isSuccess;
 
   ServiceState({
     this.isLoading = false,
     this.errorMessage,
     this.isSuccess = false,
   });
+  final bool isLoading;
+  final String? errorMessage;
+  final bool isSuccess;
 
   ServiceState copyWith({
     bool? isLoading,
     String? errorMessage,
     bool? isSuccess,
-  }) {
-    return ServiceState(
+  }) => ServiceState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       isSuccess: isSuccess ?? this.isSuccess,
     );
-  }
 }
 
 /// Notifier for service operations
 class ServiceNotifier extends StateNotifier<ServiceState> {
-  final ServiceRepository _serviceRepository;
-  final Ref _ref;
 
   ServiceNotifier(this._serviceRepository, this._ref) : super(ServiceState());
+  final ServiceRepository _serviceRepository;
+  final Ref _ref;
 
   Future<void> createService(Map<String, dynamic> data) async {
     state = state.copyWith(isLoading: true, errorMessage: null, isSuccess: false);
