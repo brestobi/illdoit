@@ -146,7 +146,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.signup,
-        builder: (context, state) => const SignupScreen(),
+        builder: (context, state) => SignupScreen(),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
@@ -154,7 +154,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.phoneLogin,
-        builder: (context, state) => const PhoneLoginScreen(),
+        builder: (context, state) => PhoneLoginScreen(),
       ),
       GoRoute(
         path: AppRoutes.otpVerify,
@@ -170,7 +170,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.onboarding,
-        builder: (context, state) => const OnboardingStepsScreen(),
+        builder: (context, state) => OnboardingStepsScreen(),
       ),
 
       // Main App Routes

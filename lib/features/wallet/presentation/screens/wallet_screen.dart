@@ -106,7 +106,7 @@ class WalletScreen extends ConsumerWidget {
                       data: (requests) {
                         final pendingAmount = requests
                             .where((r) => r.status == 'pending')
-                            .fold(0, (sum, r) => sum + r.amount);
+                            .fold(0.0, (sum, r) => sum + r.amount);
                         return _buildStatBox('Pending', currencyFormat.format(pendingAmount));
                       },
                       loading: () => _buildStatBox('Pending', '...'),
