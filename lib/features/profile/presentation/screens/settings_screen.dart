@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/router/app_router.dart';
 import '../providers/profile_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -29,6 +31,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _version = info.version;
         _buildNumber = info.buildNumber;
       });
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch URL')),
+        );
+      }
     }
   }
 
@@ -113,9 +128,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _buildSectionHeader('Account'),
               _buildSettingCard([
                 _buildActionTile(
+                  icon: Icons.account_circle_outlined,
+                  title: 'Change Account Role',
+                  onTap: () {
+                    // Navigate to a screen to change role
+                  },
+                ),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
+                _buildActionTile(
                   icon: Icons.lock_outline,
                   title: 'Change Password',
-                  onTap: () {},
+                  onTap: () => context.push(AppRoutes.changePassword),
                 ),
                 Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
@@ -138,19 +161,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _buildActionTile(
                   icon: Icons.help_outline,
                   title: 'Help Center',
-                  onTap: () {},
+                  onTap: () => _launchUrl('https://illdoit.space/helpcenter'),
                 ),
                 Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.description_outlined,
                   title: 'Terms of Service',
-                  onTap: () {},
+                  onTap: () => _launchUrl('https://illdoit.space/terms'),
                 ),
                 Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Privacy Policy',
-                  onTap: () {},
+                  onTap: () => _launchUrl('https://illdoit.space/policy'),
                 ),
               ]),
 

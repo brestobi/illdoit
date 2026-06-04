@@ -17,9 +17,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String? imageUrl,
   }) async {
     final currentUser = _supabaseService.currentUser;
-    if (currentUser == null) {
-      throw AuthenticationException('No user logged in');
-    }
+    if (currentUser == null) throw AuthenticationException('No user logged in');
 
     try {
       final response = await _supabaseService.insert(
@@ -38,28 +36,9 @@ class MessageRepositoryImpl implements MessageRepository {
     }
   }
 
-  @override
-  Future<String> uploadChatImage({required List<int> bytes}) async {
-    final currentUser = _supabaseService.currentUser;
-    if (currentUser == null) {
-      throw AuthenticationException('No user logged in');
-    }
+    @override
+    Future<List<Message>> getChatMessages({required String otherUserId}) async {
 
-    try {
-      final fileName = 'chat/${currentUser.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
-      return await _supabaseService.uploadFile(
-        bucket: 'chat-images',
-        path: fileName,
-        bytes: bytes,
-      );
-    } catch (e) {
-      throw ServerException('Failed to upload chat image: $e');
-    }
-  }
-
-  @override
-  Future<List<Message>> getChatMessages({required String otherUserId}) async {
     final currentUser = _supabaseService.currentUser;
     if (currentUser == null) {
       throw AuthenticationException('No user logged in');

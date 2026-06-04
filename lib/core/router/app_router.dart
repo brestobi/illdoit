@@ -33,7 +33,8 @@ import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
 
 import '../../features/services/presentation/screens/service_detail_screen.dart';
-
+import '../../features/profile/presentation/screens/change_role_screen.dart';
+import '../../features/profile/presentation/screens/change_password_screen.dart';
 
 import '../../features/jobs/presentation/screens/job_detail_screen.dart';
 
@@ -59,6 +60,8 @@ class AppRoutes {
   static const String createJob = '/create-job';
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String changeRole = '/change-role';
+  static const String changePassword = '/change-password';
   static const String editProfile = '/edit-profile';
   static const String publicProfile = '/profile/:id';
   static const String verificationCenter = '/verification-center';
@@ -225,6 +228,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.changeRole,
+        builder: (context, state) => const ChangeRoleScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.editProfile,

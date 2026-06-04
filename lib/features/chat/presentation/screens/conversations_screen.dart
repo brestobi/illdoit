@@ -12,28 +12,29 @@ class ConversationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final conversationsAsync = ref.watch(conversationsProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Messages'),
         elevation: 0,
       ),
       body: conversationsAsync.when(
         data: (conversations) => conversations.isEmpty
-            ? const Center(
+            ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.chat_bubble_outline,
                       size: 64,
-                      color: AppColors.textSecondary,
+                      color: theme.textTheme.bodySmall?.color,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       'No messages yet.',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: theme.textTheme.bodySmall?.color),
                     ),
                   ],
                 ),
@@ -53,7 +54,9 @@ class ConversationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildConversationTile(BuildContext context, Map<String, dynamic> conv) => ListTile(
+  Widget _buildConversationTile(BuildContext context, Map<String, dynamic> conv) {
+    final theme = Theme.of(context);
+    return ListTile(
       onTap: () {
         context.push(
           AppRoutes.chat.replaceFirst(':id', conv['id']),
@@ -63,29 +66,30 @@ class ConversationsScreen extends ConsumerWidget {
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
       leading: CircleAvatar(
         radius: 28,
-        backgroundColor: AppColors.primary,
+        backgroundColor: theme.primaryColor,
         backgroundImage: conv['avatar_url'] != null
             ? NetworkImage(conv['avatar_url'])
             : null,
         child: conv['avatar_url'] == null
-            ? const Icon(Icons.person, color: AppColors.darkBg)
+            ? Icon(Icons.person, color: theme.colorScheme.onPrimary)
             : null,
       ),
       title: Text(
         conv['display_name'] ?? 'Unknown',
-        style: const TextStyle(
-          color: AppColors.textPrimary,
+        style: TextStyle(
+          color: theme.textTheme.titleMedium?.color,
           fontWeight: FontWeight.w600,
         ),
       ),
-      subtitle: const Text(
+      subtitle: Text(
         'Tap to chat',
-        style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.arrow_forward_ios,
         size: 14,
-        color: AppColors.textSecondary,
+        color: theme.disabledColor,
       ),
     );
+  }
 }

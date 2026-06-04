@@ -36,9 +36,10 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
   @override
   Widget build(BuildContext context) {
     final jobsAsync = ref.watch(jobsByStatusProvider(_status));
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Jobs'),
         elevation: 0,
@@ -68,7 +69,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
         children: [
           // Tabs
           Container(
-            color: AppColors.surface,
+            color: theme.colorScheme.surface,
             child: Row(
               children: [
                 _buildTab(0, 'Active'),
@@ -111,7 +112,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: $err', style: const TextStyle(color: Colors.red)),
+                      Text('Error: $err', style: TextStyle(color: theme.colorScheme.error)),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => ref.refresh(jobsByStatusProvider(_status)),
@@ -131,6 +132,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
 
   Widget _buildTab(int index, String label) {
     final isSelected = _selectedTabIndex == index;
+    final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -143,7 +145,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: isSelected ? AppColors.primary : Colors.transparent,
+                color: isSelected ? theme.primaryColor : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -154,7 +156,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? theme.primaryColor : theme.textTheme.bodyMedium?.color,
               ),
             ),
           ),
@@ -163,35 +165,39 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
     );
   }
 
-  Widget _buildEmptyState() => Center(
+  Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             _selectedType == 'physical' ? Icons.hail : _selectedType == 'digital' ? Icons.computer : Icons.work_off_outlined,
             size: 64,
-            color: AppColors.textSecondary,
+            color: theme.textTheme.bodySmall?.color,
           ),
           const SizedBox(height: 16),
           Text(
             'No ${_selectedType != 'all' ? _selectedType : ''} $_status jobs found.',
-            style: const TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(color: theme.textTheme.bodySmall?.color),
           ),
         ],
       ),
     );
+  }
 
   Widget _buildTypeFilter(String id, String label) {
     final isSelected = _selectedType == id;
+    final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedType = id),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.surface,
+            color: isSelected ? theme.primaryColor : theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderColor),
+            border: Border.all(color: isSelected ? theme.primaryColor : theme.colorScheme.outline),
           ),
           child: Center(
             child: Text(
@@ -199,7 +205,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? AppColors.black : AppColors.textSecondary,
+                color: isSelected ? theme.colorScheme.onPrimary : theme.textTheme.bodyMedium?.color,
               ),
             ),
           ),
@@ -210,6 +216,7 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
 
   Widget _buildJobCard(Job job) {
     final deadlineStr = DateFormat('MMM dd, yyyy').format(job.deadline);
+    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () => context.push(AppRoutes.jobDetail.replaceFirst(':id', job.id)),
@@ -217,9 +224,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderColor),
+          border: Border.all(color: theme.colorScheme.outline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,16 +240,16 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                       Icon(
                         job.jobType == 'physical' ? Icons.hail : Icons.computer,
                         size: 16,
-                        color: AppColors.primary,
+                        color: theme.primaryColor,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           job.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: theme.textTheme.titleMedium?.color,
                           ),
                         ),
                       ),
@@ -252,15 +259,15 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: theme.primaryColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     job.status.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
+                      color: theme.primaryColor,
                     ),
                   ),
                 ),
@@ -269,9 +276,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
             const SizedBox(height: 8),
             Text(
               job.description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: theme.textTheme.bodySmall?.color,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -285,21 +292,21 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                   children: [
                     Text(
                       'Budget: R${job.budget.toStringAsFixed(0)}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                        color: theme.primaryColor,
                       ),
                     ),
                     if (job.location != null) ...[
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textSecondary),
+                          Icon(Icons.location_on_outlined, size: 12, color: theme.textTheme.bodySmall?.color),
                           const SizedBox(width: 4),
                           Text(
                             job.location!,
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color),
                           ),
                         ],
                       ),
@@ -307,9 +314,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Due: $deadlineStr',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: theme.textTheme.bodySmall?.color,
                       ),
                     ),
                   ],

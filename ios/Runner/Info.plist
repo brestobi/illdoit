@@ -45,6 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to show services and jobs nearby.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We need your location to show services and jobs nearby.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

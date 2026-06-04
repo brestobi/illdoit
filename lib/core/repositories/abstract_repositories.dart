@@ -2,6 +2,7 @@ import '../models/app_notification.dart';
 import '../models/user.dart';
 import '../models/service.dart';
 import '../models/job.dart';
+import '../models/job_milestone.dart';
 import '../models/transaction.dart';
 import '../models/message.dart';
 import '../models/order.dart';
@@ -160,6 +161,25 @@ abstract class JobRepository {
     required String applicationId,
     required ApplicationStatus status,
   });
+
+  /// Get milestones for a specific job
+  Future<List<JobMilestone>> getJobMilestones({required String jobId});
+
+  /// Create a new milestone
+  Future<JobMilestone> createJobMilestone({
+    required String jobId,
+    required String title,
+    String? description,
+  });
+
+  /// Update milestone status
+  Future<void> updateJobMilestone({
+    required String milestoneId,
+    required String status,
+  });
+
+  /// Delete a milestone
+  Future<void> deleteJobMilestone({required String milestoneId});
 }
 
 /// Abstract repository for order operations
@@ -269,9 +289,6 @@ abstract class MessageRepository {
     required String content,
     String? imageUrl,
   });
-
-  /// Upload chat image
-  Future<String> uploadChatImage({required List<int> bytes});
 
   /// Get messages between two users
   Future<List<Message>> getChatMessages({required String otherUserId});

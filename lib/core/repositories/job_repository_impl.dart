@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/job.dart';
 import '../models/job_application.dart';
+import '../models/job_milestone.dart';
 import '../services/supabase_service.dart';
 import '../errors/app_exceptions.dart';
 import 'abstract_repositories.dart';
@@ -254,17 +255,14 @@ class JobRepositoryImpl implements JobRepository {
           throw ServerException('This job is already in progress or has been completed.');
         }
 
-        // 3. Check client balance (Simplified for MVP, using TransactionRepository logic would be better but keeping it here for speed)
-        // In a real app, this should be a database-side RPC or transaction
-        final bidAmount = app.bidAmount ?? job.budget;
-        
-        // Let's at least check the 'balance' column we added to users
+        // 3. Check client balance 
         final clientResults = await _supabaseService.query(
           table: 'users',
           filters: {'id': job.clientId},
         );
         if (clientResults.isEmpty) throw ServerException('Client not found');
         final clientBalance = (clientResults.first['balance'] as num?)?.toDouble() ?? 0.0;
+        final bidAmount = app.bidAmount ?? job.budget;
 
         if (clientBalance < bidAmount) {
           throw ServerException('Insufficient funds in wallet to hire. Please "Cash In" to top up your wallet.');
@@ -318,6 +316,74 @@ class JobRepositoryImpl implements JobRepository {
           .eq('id', applicationId);
     } catch (e) {
       throw ServerException('Failed to update application status: $e');
+    }
+  }
+
+  @override
+  Future<List<JobMilestone>> getJobMilestones({required String jobId}) async {
+    try {
+      final results = await _supabaseService.query(
+        table: 'job_milestones',
+        filters: {'job_id': jobId},
+      );
+      return results.map(JobMilestone.fromJson).toList();
+    } catch (e) {
+      throw ServerException('Failed to fetch milestones: $e');
+    }
+  }
+
+  @override
+  Future<JobMilestone> createJobMilestone({
+    required String jobId,
+    required String title,
+    String? description,
+  }) async {
+    try {
+      final response = await _supabaseService.insert(
+        table: 'job_milestones',
+        data: {
+          'job_id': jobId,
+          'title': title,
+          'description': description,
+          'status': 'pending',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
+      return JobMilestone.fromJson(response);
+    } catch (e) {
+      throw ServerException('Failed to create milestone: $e');
+    }
+  }
+
+  @override
+  Future<void> updateJobMilestone({
+    required String milestoneId,
+    required String status,
+  }) async {
+    try {
+      await _supabaseService.update(
+        table: 'job_milestones',
+        id: milestoneId,
+        data: {
+          'status': status,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      throw ServerException('Failed to update milestone: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteJobMilestone({required String milestoneId}) async {
+    try {
+      await _supabaseService.delete(
+        table: 'job_milestones',
+        id: milestoneId,
+      );
+    } catch (e) {
+      throw ServerException('Failed to delete milestone: $e');
     }
   }
 }

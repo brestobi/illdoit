@@ -13,6 +13,8 @@ import '../../../../features/profile/presentation/providers/profile_provider.dar
 import '../../../profile/presentation/providers/review_provider.dart';
 import '../providers/jobs_provider.dart';
 import '../providers/job_applications_provider.dart';
+import '../widgets/milestone_list_widget.dart';
+import '../widgets/add_milestone_dialog.dart';
 
 class JobDetailScreen extends ConsumerWidget {
 
@@ -170,52 +172,43 @@ class JobDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 32),
                 ],
-
-                // Images
-                if (job.images.isNotEmpty) ...[
-                  const Text(
-                    'Job Images',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                // Milestones Section
+                if (job.status == 'in_progress') ...[
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Milestones',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      // Need a way to identify if current user is provider.
+                      // For MVP, allow the owner to add for now.
+                      if (isOwner)
+                        TextButton(
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (context) => AddMilestoneDialog(jobId: job.id),
+                          ),
+                          child: const Text('Add Milestone'),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    height: 150,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: job.images.length,
-                      itemBuilder: (context, index) => Container(
-                          width: 200,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: CachedNetworkImage(
-                              imageUrl: job.images[index],
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: AppColors.surface,
-                                child: const Center(child: CircularProgressIndicator()),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: AppColors.surface,
-                                child: const Icon(Icons.error_outline, color: Colors.white54),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ),
+                  MilestoneListWidget(
+                    jobId: job.id,
+                    isProvider: isOwner, // Simplified for MVP
                   ),
                 ],
                 const SizedBox(height: 100),
               ],
             ),
           ),
+// ...
           bottomSheet: Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -242,9 +235,11 @@ class JobDetailScreen extends ConsumerWidget {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: isOwner
-                            ? () => context.push(
-                                  AppRoutes.manageApplications.replaceFirst(':jobId', job.id),
-                                )
+                            ? job.status == 'in_progress'
+                                ? () => _handleCompleteJob(context, ref, job.id)
+                                : () => context.push(
+                                      AppRoutes.manageApplications.replaceFirst(':jobId', job.id),
+                                    )
                             : canApply
                                 ? () async {
                                     final profile = ref.read(profileProvider).valueOrNull;
@@ -282,7 +277,9 @@ class JobDetailScreen extends ConsumerWidget {
                                 : null,
                         child: Text(
                           isOwner
-                              ? 'Manage Applications'
+                              ? job.status == 'in_progress'
+                                  ? 'Complete Job'
+                                  : 'Manage Applications'
                               : canApply
                                   ? "I'll do it"
                                   : job.status == 'applied'
@@ -291,6 +288,7 @@ class JobDetailScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+
                   ],
                 ),
                 if (canReview) ...[
@@ -319,6 +317,23 @@ class JobDetailScreen extends ConsumerWidget {
         body: Center(child: Text('Error: $err')),
       ),
     );
+  }
+
+  Future<void> _handleCompleteJob(BuildContext context, WidgetRef ref, String jobId) async {
+    try {
+      await ref.read(jobNotifierProvider.notifier).completeJob(jobId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Job marked as completed.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to complete job: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _handleDeleteJob(BuildContext context, WidgetRef ref, String jobId) async {

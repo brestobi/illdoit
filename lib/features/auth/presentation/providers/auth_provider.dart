@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 
 /// State for authentication
 class AuthState {
@@ -64,6 +65,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       // Ensure profile exists immediately
       await _ref.read(userRepositoryProvider).ensureProfileExists();
+      _ref.invalidate(profileProvider);
       
       // Update push token
       await _ref.read(notificationServiceProvider).updateToken();
@@ -88,6 +90,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       // Ensure profile exists immediately
       await _ref.read(userRepositoryProvider).ensureProfileExists();
+      _ref.invalidate(profileProvider);
       
       // Update push token
       await _ref.read(notificationServiceProvider).updateToken();
@@ -173,6 +176,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       // Ensure profile exists immediately
       await _ref.read(userRepositoryProvider).ensureProfileExists();
+      _ref.invalidate(profileProvider);
       
       // Update push token
       await _ref.read(notificationServiceProvider).updateToken();

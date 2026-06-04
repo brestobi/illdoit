@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/validators.dart';
@@ -111,9 +112,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Animated Logo Header
-                  const FadeInAnimation(
-                    delay: Duration(milliseconds: 200),
-                    child: AppLogo(size: 80),
+                  FadeInAnimation(
+                    delay: const Duration(milliseconds: 200),
+                    child: SvgPicture.asset(
+                      'assets/icons/logo.svg',
+                      height: 80,
+                      width: 80,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   FadeInAnimation(

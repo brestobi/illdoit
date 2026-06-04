@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/models/service.dart';
@@ -55,14 +56,13 @@ class HomeScreen extends ConsumerWidget {
                 padding: EdgeInsets.only(left: 16, top: 8, bottom: 8),
                 child: AppLogo(size: 28),
               ),
-              title: Text(
-                'I\'ll Do It',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1,
-                ),
+              title: SvgPicture.asset(
+                'assets/icons/logo.svg',
+                height: 32,
+                colorFilter: isDark ? const ColorFilter.mode(Colors.white, BlendMode.srcIn) : null,
               ),
               actions: [
+// ...
                 ScaleOnTap(
                   onTap: () => context.push(AppRoutes.wallet),
                   child: Container(
@@ -120,7 +120,7 @@ class HomeScreen extends ConsumerWidget {
                         Text(
                           'Hi, $userName 👋',
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -389,7 +389,7 @@ class HomeScreen extends ConsumerWidget {
           title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
-            fontSize: 20,
+            fontSize: 18,
           ),
         ),
         if (onSeeAll != null)

@@ -5,6 +5,8 @@ part 'job.g.dart';
 
 @freezed
 class Job with _$Job {
+  const Job._(); // Required for getters
+
   const factory Job({
     required String id,
     @JsonKey(name: 'client_id') required String clientId,
@@ -12,6 +14,8 @@ class Job with _$Job {
     required String title,
     required String description,
     required String category,
+    @Default([]) List<String> tags,
+    @JsonKey(name: 'location_id') String? locationId,
     String? location,
     required double budget,
     required DateTime deadline,
@@ -22,4 +26,8 @@ class Job with _$Job {
   }) = _Job;
 
   factory Job.fromJson(Map<String, dynamic> json) => _$JobFromJson(json);
+
+  bool get isExpired => DateTime.now().isAfter(deadline);
+  bool get isUrgent => status == 'open' && deadline.difference(DateTime.now()).inDays < 2;
+  String get formattedBudget => 'R${budget.toStringAsFixed(0)}';
 }

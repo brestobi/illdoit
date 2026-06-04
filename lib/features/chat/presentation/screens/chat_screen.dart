@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/message.dart';
@@ -75,51 +74,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-    );
-
-    if (pickedFile != null) {
-      try {
-        final bytes = await pickedFile.readAsBytes();
-        final imageUrl = await ref.read(messageRepositoryProvider).uploadChatImage(
-              bytes: bytes.toList(),
-            );
-        
-        await ref.read(messageRepositoryProvider).sendMessage(
-              receiverId: widget.otherUserId,
-              content: '[Image]',
-              imageUrl: imageUrl,
-            );
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')),
-          );
-        }
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(chatMessagesProvider(widget.otherUserId));
     final currentUserId = ref.read(supabaseServiceProvider).currentUser?.id;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primary,
+              backgroundColor: theme.primaryColor,
               child: Text(
                 widget.otherUserName[0].toUpperCase(),
-                style: const TextStyle(fontSize: 12, color: AppColors.darkBg),
+                style: TextStyle(fontSize: 12, color: theme.colorScheme.onPrimary),
               ),
             ),
             const SizedBox(width: 12),
@@ -149,23 +120,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'report',
                 child: Row(
                   children: [
-                    Icon(Icons.report_outlined, color: AppColors.error, size: 20),
-                    SizedBox(width: 8),
-                    Text('Report User', style: TextStyle(color: AppColors.error)),
+                    Icon(Icons.report_outlined, color: theme.colorScheme.error, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Report User', style: TextStyle(color: theme.colorScheme.error)),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'block',
                 child: Row(
                   children: [
-                    Icon(Icons.block, color: AppColors.error, size: 20),
-                    SizedBox(width: 8),
-                    Text('Block User', style: TextStyle(color: AppColors.error)),
+                    Icon(Icons.block, color: theme.colorScheme.error, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Block User', style: TextStyle(color: theme.colorScheme.error)),
                   ],
                 ),
               ),
@@ -175,6 +146,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
       body: Column(
         children: [
+          _buildPrivacyDisclaimer(),
           Expanded(
             child: messagesAsync.when(
               data: (messages) {
@@ -196,6 +168,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
           _buildMessageInput(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrivacyDisclaimer() {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: theme.colorScheme.surfaceVariant,
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, size: 16, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Messages are strictly monitored and are not private.',
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -281,10 +276,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.image_outlined, color: AppColors.textSecondary),
-              onPressed: _pickImage,
-            ),
             Expanded(
               child: TextField(
                 controller: _messageController,

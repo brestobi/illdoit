@@ -38,7 +38,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     final otp = _otpController.text.trim();
     if (otp.isEmpty || otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit code')),
+        const SnackBar(content: Text('Please enter a valid 6 to 8 digit code')),
       );
       return;
     }
@@ -108,7 +108,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter the 6-digit code sent to ${widget.identifier}',
+                'Enter the code sent to ${widget.identifier}',
                 style: const TextStyle(
                   fontSize: 16,
                   color: AppColors.textSecondary,
@@ -121,7 +121,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 controller: _otpController,
                 keyboardType: TextInputType.number,
                 enabled: !isLoading,
-                maxLength: 6,
+                maxLength: 8,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.textPrimary,

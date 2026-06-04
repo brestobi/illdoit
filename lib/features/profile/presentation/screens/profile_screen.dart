@@ -17,9 +17,10 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(profileProvider);
     final totalEarnedAsync = ref.watch(totalEarnedProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Profile'),
         elevation: 0,
@@ -49,37 +50,37 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: theme.primaryColor,
                       backgroundImage: user.avatarUrl != null
                           ? CachedNetworkImageProvider(user.avatarUrl!)
                           : null,
                       child: user.avatarUrl == null
-                          ? const Icon(
+                          ? Icon(
                               Icons.person,
                               size: 50,
-                              color: AppColors.darkBg,
+                              color: theme.colorScheme.onPrimary,
                             )
                           : null,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       user.displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: theme.textTheme.titleLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       user.email ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: theme.textTheme.bodyMedium?.color,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildRoleBadge(user.userType),
+                    _buildRoleBadge(context, user.userType),
                     const SizedBox(height: 12),
                     GestureDetector(
                       onTap: () => context.push(AppRoutes.verificationCenter),
@@ -90,24 +91,24 @@ class ProfileScreen extends ConsumerWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.2),
+                                color: theme.primaryColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.verified,
                                     size: 14,
-                                    color: AppColors.primary,
+                                    color: theme.primaryColor,
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Verified',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.primary,
+                                      color: theme.primaryColor,
                                     ),
                                   ),
                                 ],
@@ -119,25 +120,25 @@ class ProfileScreen extends ConsumerWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.surface,
+                                color: theme.colorScheme.surface,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.borderColor),
+                                border: Border.all(color: theme.dividerColor),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.verified_user_outlined,
                                     size: 14,
-                                    color: AppColors.textSecondary,
+                                    color: theme.textTheme.bodySmall?.color,
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Verify Account',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
+                                      color: theme.textTheme.bodySmall?.color,
                                     ),
                                   ),
                                 ],
@@ -150,49 +151,50 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Stats
-              _buildStatSection(user, totalEarnedAsync),
+              _buildStatSection(context, user, totalEarnedAsync),
               const SizedBox(height: 24),
 
               // Bio
-              const Text(
+              Text(
                 'About',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: theme.textTheme.titleLarge?.color,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 user.bio ?? 'No bio yet.',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: theme.textTheme.bodyMedium?.color,
                 ),
               ),
               const SizedBox(height: 24),
 
               // Skills
               if (user.skills.isNotEmpty) ...[
-                const Text(
+                Text(
                   'Skills',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: theme.textTheme.titleLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: user.skills.map(_buildSkillChip).toList(),
+                  children: user.skills.map((s) => _buildSkillChip(context, s)).toList(),
                 ),
                 const SizedBox(height: 24),
               ],
 
-              _buildReviewSection(reviewsAsync),
+              _buildReviewSection(context, reviewsAsync),
               const SizedBox(height: 24),
+              // ... buttons ...
 
               // Action Buttons
               if (user.userType == 'viewer')
@@ -292,66 +294,75 @@ class ProfileScreen extends ConsumerWidget {
   );
 }
 
-Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: [
-      _buildStatCard(user.completedJobs.toString(), 'Completed'),
-      _buildStatCard(user.rating.toString(), 'Rating'),
-      totalEarnedAsync.when(
-        data: (earned) => _buildStatCard('R${earned.toStringAsFixed(0)}', 'Earned'),
-        loading: () => _buildStatCard('...', 'Earned'),
-        error: (_, __) => _buildStatCard('R0', 'Earned'),
-      ),
-    ],
-  );
+Widget _buildStatSection(BuildContext context, dynamic user, AsyncValue<double> totalEarnedAsync) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildStatCard(context, user.completedJobs.toString(), 'Completed'),
+        _buildStatCard(context, user.rating.toString(), 'Rating'),
+        totalEarnedAsync.when(
+          data: (earned) => _buildStatCard(context, 'R${earned.toStringAsFixed(0)}', 'Earned'),
+          loading: () => _buildStatCard(context, '...', 'Earned'),
+          error: (_, __) => _buildStatCard(context, 'R0', 'Earned'),
+        ),
+      ],
+    );
+  }
 
-  Widget _buildStatCard(String value, String label) => Column(
+  Widget _buildStatCard(BuildContext context, String value, String label) {
+    final theme = Theme.of(context);
+    return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.primary,
+            color: theme.primaryColor,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.textSecondary,
+            color: theme.textTheme.bodySmall?.color,
           ),
         ),
       ],
     );
+  }
 
-  Widget _buildSkillChip(String skill) => Chip(
+  Widget _buildSkillChip(BuildContext context, String skill) {
+    final theme = Theme.of(context);
+    return Chip(
       label: Text(
         skill,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          color: theme.textTheme.bodyMedium?.color,
         ),
       ),
-      backgroundColor: AppColors.surface,
-      side: const BorderSide(color: AppColors.borderColor),
+      backgroundColor: theme.colorScheme.surface,
+      side: BorderSide(color: theme.dividerColor),
     );
+  }
 
-  Widget _buildRoleBadge(String userType) {
+  Widget _buildRoleBadge(BuildContext context, String userType) {
+    final theme = Theme.of(context);
     String label = 'Viewer';
     IconData icon = Icons.visibility_outlined;
-    Color color = AppColors.textSecondary;
+    Color color = theme.textTheme.bodySmall?.color ?? Colors.grey;
 
     if (userType == 'job_seeker') {
       label = 'Job Seeker';
       icon = Icons.work_outline;
-      color = AppColors.primary;
+      color = theme.primaryColor;
     } else if (userType == 'employer') {
       label = 'Employer';
       icon = Icons.person_add_outlined;
-      color = AppColors.blue;
+      color = theme.colorScheme.secondary;
     }
 
     return Container(
@@ -379,49 +390,53 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) => R
     );
   }
 
-  Widget _buildReviewSection(AsyncValue<List<Map<String, dynamic>>> reviewsAsync) => Container(
+  Widget _buildReviewSection(BuildContext context, AsyncValue<List<Map<String, dynamic>>> reviewsAsync) {
+    final theme = Theme.of(context);
+    return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Reviews',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: theme.textTheme.titleLarge?.color,
             ),
           ),
           const SizedBox(height: 12),
           reviewsAsync.when(
             data: (reviews) {
               if (reviews.isEmpty) {
-                return const Text(
+                return Text(
                   'No reviews yet. Keep delivering great work to earn your first review.',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: theme.textTheme.bodySmall?.color),
                 );
               }
               return Column(
-                children: reviews.take(3).map(_buildReviewTile).toList(),
+                children: reviews.take(3).map((r) => _buildReviewTile(context, r)).toList(),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, __) => Text(
               'Failed to load reviews: $err',
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: theme.colorScheme.error),
             ),
           ),
         ],
       ),
     );
+  }
 
-  Widget _buildReviewTile(Map<String, dynamic> review) {
+  Widget _buildReviewTile(BuildContext context, Map<String, dynamic> review) {
+    final theme = Theme.of(context);
     final rating = review['rating']?.toString() ?? '0';
     final comment = review['comment']?.toString() ?? 'No comment provided.';
     final createdAt = review['created_at'] != null
@@ -433,9 +448,9 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) => R
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.darkBg,
+        color: theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,14 +460,14 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) => R
             children: [
               Row(
                 children: [
-                  const Icon(Icons.star, size: 16, color: AppColors.primary),
+                  Icon(Icons.star, size: 16, color: theme.primaryColor),
                   const SizedBox(width: 4),
                   Text(
                     rating,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: theme.textTheme.titleMedium?.color,
                     ),
                   ),
                 ],
@@ -460,14 +475,14 @@ Widget _buildStatSection(dynamic user, AsyncValue<double> totalEarnedAsync) => R
               if (createdAt != null)
                 Text(
                   '${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color),
                 ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             comment,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 13, color: theme.textTheme.bodyMedium?.color),
           ),
         ],
       ),

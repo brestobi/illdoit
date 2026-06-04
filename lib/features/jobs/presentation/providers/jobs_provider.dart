@@ -91,6 +91,21 @@ class JobNotifier extends StateNotifier<JobState> {
     }
   }
 
+  Future<void> completeJob(String id) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, isSuccess: false);
+    try {
+      await _jobRepository.updateJob(jobId: id, data: {'status': 'completed'});
+      state = state.copyWith(isLoading: false, isSuccess: true);
+      _ref.invalidate(myJobsProvider);
+      _ref.invalidate(openJobsProvider);
+      _ref.invalidate(jobsByStatusProvider('open'));
+      _ref.invalidate(jobsByStatusProvider('completed'));
+      _ref.invalidate(jobProvider(id));
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    }
+  }
+
   Future<void> deleteJob(String id) async {
     state = state.copyWith(isLoading: true, errorMessage: null, isSuccess: false);
     try {
