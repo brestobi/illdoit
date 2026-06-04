@@ -320,6 +320,27 @@ class JobRepositoryImpl implements JobRepository {
   }
 
   @override
+  Future<List<Job>> getNearbyJobs({
+    required double lat,
+    required double lng,
+    required double radiusKm,
+  }) async {
+    try {
+      final results = await _supabaseService.client.rpc(
+        'get_nearby_jobs',
+        params: {
+          'user_lat': lat,
+          'user_lng': lng,
+          'radius_km': radiusKm,
+        },
+      );
+      return (results as List).map((e) => Job.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    } catch (e) {
+      throw ServerException('Failed to fetch nearby jobs: $e');
+    }
+  }
+
+  @override
   Future<List<JobMilestone>> getJobMilestones({required String jobId}) async {
     try {
       final results = await _supabaseService.query(

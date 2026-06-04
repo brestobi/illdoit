@@ -23,6 +23,8 @@ class Job with _$Job {
     @Default([]) List<String> images,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
+    double? latitude,
+    double? longitude,
   }) = _Job;
 
   factory Job.fromJson(Map<String, dynamic> json) => _$JobFromJson(json);

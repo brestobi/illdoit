@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service.dart';
@@ -14,6 +15,8 @@ import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/repositories/category_repository.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../providers/explore_provider.dart';
+import '../../../jobs/presentation/providers/jobs_provider.dart';
+import '../../../../core/repositories/job_repository_impl.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
   const ExploreScreen({super.key});
@@ -25,6 +28,37 @@ class ExploreScreen extends ConsumerStatefulWidget {
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _showMap = false;
+  LatLng? _currentLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _determinePosition();
+  }
+
+  Future<void> _determinePosition() async {
+    final hasPermission = await _handleLocationPermission();
+    if (!hasPermission) return;
+    final position = await Geolocator.getCurrentPosition();
+    if (mounted) {
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+      });
+    }
+  }
+
+  Future<bool> _handleLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return false;
+    }
+    return permission != LocationPermission.deniedForever;
+  }
 
   @override
   void dispose() {
@@ -57,24 +91,34 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ],
       ),
       body: _showMap
-          ? resultsAsync.when(
-              data: (items) {
-                final markers = items.map((item) {
-                  LatLng? position;
-                  String id = '';
-                  if (item is Service) { position = const LatLng(-26.2041, 28.0473); id = item.id; } // Simplified for now
-                  else if (item is Job) { position = const LatLng(-26.2041, 28.0473); id = item.id; }
-                  
+          ? FutureBuilder<List<Job>>(
+              future: _currentLocation != null
+                  ? ref.read(jobRepositoryProvider).getNearbyJobs(
+                      lat: _currentLocation!.latitude,
+                      lng: _currentLocation!.longitude,
+                      radiusKm: 50,
+                    )
+                  : Future.value([]),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+
+                final jobs = snapshot.data ?? [];
+                final markers = jobs.map((job) {
                   return Marker(
-                    markerId: MarkerId(id),
-                    position: position ?? const LatLng(-26.2041, 28.0473),
+                    markerId: MarkerId(job.id),
+                    position: LatLng(job.latitude ?? -26.2041, job.longitude ?? 28.0473),
+                    infoWindow: InfoWindow(title: job.title, snippet: 'R${job.budget.toStringAsFixed(0)}'),
                   );
                 }).toSet();
                 
-                return AppMapWidget(markers: markers);
+                return AppMapWidget(
+                  markers: markers,
+                  initialPosition: _currentLocation,
+                );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => Center(child: Text('Error: $err')),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),

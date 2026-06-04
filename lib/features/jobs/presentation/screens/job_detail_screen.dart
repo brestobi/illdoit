@@ -172,6 +172,49 @@ class JobDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 32),
                 ],
+                // Images
+                if (job.images.isNotEmpty) ...[
+                  const Text(
+                    'Job Images',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 150,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: job.images.length,
+                      itemBuilder: (context, index) => Container(
+                          width: 200,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedNetworkImage(
+                              imageUrl: job.images[index],
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: AppColors.surface,
+                                child: const Center(child: CircularProgressIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: AppColors.surface,
+                                child: const Icon(Icons.error_outline, color: Colors.white54),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
                 // Milestones Section
                 if (job.status == 'in_progress') ...[
                   const SizedBox(height: 32),

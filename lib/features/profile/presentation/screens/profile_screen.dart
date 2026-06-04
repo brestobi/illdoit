@@ -36,10 +36,12 @@ class ProfileScreen extends ConsumerWidget {
       body: profileAsync.when(
         data: (user) {
           if (user == null) {
-            return const Center(child: Text('User not found. Please log in again.'));
+            return const Center(child: CircularProgressIndicator());
           }
           final reviewsAsync = ref.watch(userReviewsProvider(user.id));
           return SingleChildScrollView(
+      //...
+
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -162,6 +162,13 @@ abstract class JobRepository {
     required ApplicationStatus status,
   });
 
+  /// Get jobs nearby
+  Future<List<Job>> getNearbyJobs({
+    required double lat,
+    required double lng,
+    required double radiusKm,
+  });
+
   /// Get milestones for a specific job
   Future<List<JobMilestone>> getJobMilestones({required String jobId});
 
