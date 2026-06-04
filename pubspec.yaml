@@ -2,7 +2,7 @@ name: ill_do_it
 description: "I'll Do It - South African work and hustle platform"
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.0+10
 
 environment:
   sdk: '>=3.5.3 <4.0.0'

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -181,6 +182,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Center(
                 child: Column(
                   children: [
+                    SvgPicture.asset(
+                      'assets/icons/logo.svg',
+                      height: 40,
+                      colorFilter: theme.brightness == Brightness.dark
+                          ? const ColorFilter.mode(Colors.white, BlendMode.srcIn)
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       'By Hungry Developers',
                       style: TextStyle(
