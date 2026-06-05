@@ -116,12 +116,14 @@ class RouterNotifier extends ChangeNotifier {
       // Check onboarding status
       final profileAsync = _ref.read(profileProvider);
       
-      // If the profile is loading, stay put until it loads
-      if (profileAsync.isLoading) return null;
+      // If the profile is loading or in error, stay put until it loads correctly
+      if (profileAsync.isLoading || profileAsync.hasError) return null;
 
-      final profile = profileAsync.valueOrNull;
+      final profile = profileAsync.value;
 
-      // If no profile exists (new user) or onboarding not completed, redirect to onboarding
+      // Redirect to onboarding if:
+      // 1. User has no profile yet (profile == null)
+      // 2. Profile exists but onboarding not completed (!profile.isOnboardingCompleted)
       if ((profile == null || !profile.isOnboardingCompleted) && !isOnboarding) {
         return AppRoutes.onboarding;
       }

@@ -103,9 +103,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+                if (snapshot.hasError) {
+                  debugPrint('Nearby Jobs Error: ${snapshot.error}');
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
                 final jobs = snapshot.data ?? [];
+                debugPrint('Fetched ${jobs.length} nearby jobs. Current Location: $_currentLocation');
+                
                 final markers = jobs.map((job) {
                   return Marker(
                     markerId: MarkerId(job.id),
@@ -114,6 +119,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   );
                 }).toSet();
                 
+                debugPrint('Created ${markers.length} markers.');
+
                 return AppMapWidget(
                   markers: markers,
                   initialPosition: _currentLocation,

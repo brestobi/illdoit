@@ -234,86 +234,21 @@ class JobRepositoryImpl implements JobRepository {
   }) async {
     try {
       if (status == ApplicationStatus.accepted) {
-        // 1. Get Application details
-        final appResults = await _supabaseService.query(
-          table: 'job_applications',
-          filters: {'id': applicationId},
+        // Use atomic RPC for hiring process
+        await _supabaseService.client.rpc(
+          'accept_job_escrow',
+          params: {'p_application_id': applicationId},
         );
-        if (appResults.isEmpty) throw ServerException('Application not found');
-        final app = JobApplication.fromJson(appResults.first);
-
-        // 2. Get Job details
-        final jobResults = await _supabaseService.query(
-          table: 'jobs',
-          filters: {'id': app.jobId},
-        );
-        if (jobResults.isEmpty) throw ServerException('Job not found');
-        final job = Job.fromJson(jobResults.first);
-
-        // Check if job is already assigned or completed
-        if (job.status != 'open') {
-          throw ServerException('This job is already in progress or has been completed.');
-        }
-
-        // 3. Check client balance 
-        final clientResults = await _supabaseService.query(
-          table: 'users',
-          filters: {'id': job.clientId},
-        );
-        if (clientResults.isEmpty) throw ServerException('Client not found');
-        final clientBalance = (clientResults.first['balance'] as num?)?.toDouble() ?? 0.0;
-        final bidAmount = app.bidAmount ?? job.budget;
-
-        if (clientBalance < bidAmount) {
-          throw ServerException('Insufficient funds in wallet to hire. Please "Cash In" to top up your wallet.');
-        }
-
-        // 4. Create an Order for the job
-        final orderResponse = await _supabaseService.insert(
-          table: 'orders',
-          data: {
-            'buyer_id': job.clientId,
-            'seller_id': app.applicantId,
-            'job_id': job.id,
-            'amount': app.bidAmount ?? job.budget,
-            'status': 'in_progress',
-            'created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          },
-        );
-        final orderId = orderResponse['id'];
-
-        // 4. Create Escrow Transaction
-        await _supabaseService.insert(
-          table: 'transactions',
-          data: {
-            'sender_id': job.clientId,
-            'receiver_id': app.applicantId,
-            'amount': app.bidAmount ?? job.budget,
-            'type': 'escrow',
-            'status': 'pending',
-            'order_id': orderId,
-            'reference': 'Escrow for job: ${job.title}',
-            'created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          },
-        );
-
-        // 5. Update Job status to in_progress
-        await _supabaseService.update(
-          table: 'jobs',
-          id: job.id,
-          data: {'status': 'in_progress', 'updated_at': DateTime.now().toIso8601String()},
-        );
+      } else {
+        // Just update application status
+        await _supabaseService.client
+            .from('job_applications')
+            .update({
+              'status': status.name, 
+              'updated_at': DateTime.now().toIso8601String()
+            })
+            .eq('id', applicationId);
       }
-
-      await _supabaseService.client
-          .from('job_applications')
-          .update({
-            'status': status.name, 
-            'updated_at': DateTime.now().toIso8601String()
-          })
-          .eq('id', applicationId);
     } catch (e) {
       throw ServerException('Failed to update application status: $e');
     }
