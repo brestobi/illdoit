@@ -87,6 +87,11 @@ export default async (req: Request) => {
       }
     };
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    console.log('Sending payload to Yoco:', JSON.stringify(checkoutPayload));
+
     const yocoResponse = await fetch('https://online.yoco.com/v1/checkout', {
       method: 'POST',
       headers: {
@@ -94,9 +99,15 @@ export default async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(checkoutPayload),
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
+    console.log('Yoco fetch call completed.');
 
     const yocoData = await yocoResponse.json();
+    console.log('Yoco raw response:', JSON.stringify(yocoData));
+
     if (!yocoResponse.ok) {
       // Update record to failed
       await supabase.from('payments').update({ status: 'failed' }).eq('id', paymentRecord.id);

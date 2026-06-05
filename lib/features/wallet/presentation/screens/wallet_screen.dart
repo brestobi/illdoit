@@ -256,15 +256,33 @@ class WalletScreen extends ConsumerWidget {
         ),
     );
     if (confirmed != true) return;
+    
     final amount = double.tryParse(amountController.text.replaceAll(',', '.')) ?? 0.0;
-    if (amount < 10) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minimum deposit is R 10.'))); return; }
+    if (amount < 10) { 
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minimum deposit is R 10.'))); 
+        return; 
+    }
+    
     try {
       if (selectedGateway == 'Yoco') {
         final paymentService = ref.read(paymentServiceProvider);
-        final paymentData = await paymentService.createYocoCheckout(amount: amount, currency: 'ZAR', reference: 'cash_in_${DateTime.now().millisecondsSinceEpoch}');
-        final success = await context.push<bool>(AppRoutes.yocoPayment, extra: {'checkoutUrl': paymentData['checkout_url'], 'callbackUrl': 'https://illdoit.space/payment-success'});
+        
+        final paymentData = await paymentService.createYocoCheckout(
+            amount: amount, 
+            currency: 'ZAR', 
+            reference: 'cash_in_${DateTime.now().millisecondsSinceEpoch}'
+        );
+        
+        final checkoutUrl = paymentData['checkout_url'] as String;
+        final paymentId = paymentData['payment_id'] as String;
+        
+        final success = await context.push<bool>(
+            AppRoutes.yocoPayment, 
+            extra: {'checkoutUrl': checkoutUrl, 'callbackUrl': 'https://illdoit.space/payment-success'}
+        );
+        
         if (success == true) {
-            final verified = await paymentService.verifyPayment(paymentData['payment_id']);
+            final verified = await paymentService.verifyPayment(paymentId);
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(verified ? 'Success!' : 'Status pending.')));
         }
