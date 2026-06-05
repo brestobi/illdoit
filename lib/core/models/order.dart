@@ -19,7 +19,7 @@ class Order with _$Order {
     required String id,
     @JsonKey(name: 'buyer_id') required String buyerId,
     @JsonKey(name: 'seller_id') required String sellerId,
-    @JsonKey(name: 'service_id') required String serviceId,
+    @JsonKey(name: 'service_id') String? serviceId,
     required double amount,
     @Default(0) double fee,
     @Default(OrderStatus.pending) OrderStatus status,
