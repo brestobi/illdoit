@@ -35,6 +35,7 @@ import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
 import '../../features/services/presentation/screens/service_detail_screen.dart';
 import '../../features/profile/presentation/screens/change_role_screen.dart';
 import '../../features/profile/presentation/screens/change_password_screen.dart';
+import '../../features/wallet/presentation/screens/yoco_payment_screen.dart';
 
 import '../../features/jobs/presentation/screens/job_detail_screen.dart';
 
@@ -67,6 +68,7 @@ class AppRoutes {
   static const String verificationCenter = '/verification-center';
   static const String idVerification = '/id-verification';
   static const String wallet = '/wallet';
+  static const String yocoPayment = '/yoco-payment';
   static const String notifications = '/notifications';
   static const String messages = '/messages';
   static const String chat = '/chat/:id';
@@ -268,6 +270,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.wallet,
         builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.yocoPayment,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return YocoPaymentScreen(
+            checkoutUrl: extra['checkoutUrl'] as String,
+            callbackUrl: extra['callbackUrl'] as String,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.notifications,

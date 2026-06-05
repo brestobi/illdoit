@@ -414,19 +414,30 @@ class WalletScreen extends ConsumerWidget {
 
         final checkoutUrl = paymentData['checkout_url'] as String;
         final paymentId = paymentData['payment_id'] as String;
+        
+        // Define a clear callback URL that the WebView should detect
+        final callbackUrl = 'https://illdoit.space/payment-success';
 
-        await paymentService.launchCheckout(checkoutUrl);
+        final success = await context.push<bool>(
+          AppRoutes.yocoPayment,
+          extra: {
+            'checkoutUrl': checkoutUrl,
+            'callbackUrl': callbackUrl,
+          },
+        );
 
-        // Polling for webhook confirmation
-        final success = await paymentService.verifyPayment(paymentId);
-
-        if (!context.mounted) return;
-
-        if (success) {
+        if (success == true) {
+          // Polling for webhook confirmation (existing logic)
+          final verified = await paymentService.verifyPayment(paymentId);
           if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Funds added successfully via Yoco!')));
+          
+          if (verified) {
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Funds added successfully via Yoco!')));
+          } else {
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment verified, but status pending.')));
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Yoco payment could not be verified.')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment cancelled.')));
         }
       } else {
         // Fallback for other gateways (Ozow/PayFast)
