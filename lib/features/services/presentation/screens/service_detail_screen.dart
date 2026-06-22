@@ -71,7 +71,7 @@ class ServiceDetailScreen extends ConsumerWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -197,29 +197,44 @@ class ServiceDetailScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await ref.read(orderNotifierProvider.notifier).createOrder(
-                            serviceId: service.id,
-                            sellerId: service.userId,
-                            amount: service.price,
-                          );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Order placed successfully!')),
-                        );
-                        context.go(AppRoutes.home);
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to place order: $e')),
-                        );
-                      }
-                    }
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final orderState = ref.watch(orderNotifierProvider);
+                    final isLoading = orderState.isLoading;
+
+                    return ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              try {
+                                await ref.read(orderNotifierProvider.notifier).createOrder(
+                                      serviceId: service.id,
+                                      sellerId: service.userId,
+                                      amount: service.price,
+                                    );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Order placed successfully!')),
+                                  );
+                                  context.go(AppRoutes.home);
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to place order: $e')),
+                                  );
+                                }
+                              }
+                            },
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Text('Place Order'),
+                    );
                   },
-                  child: const Text('Order Now'),
                 ),
               ),
             ],
