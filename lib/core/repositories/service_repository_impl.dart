@@ -55,12 +55,15 @@ class ServiceRepositoryImpl implements ServiceRepository {
       final results = await _supabaseService.query(
         table: 'services',
         filters: filters.isNotEmpty ? filters : null,
+        orderBy: sortBy ?? 'created_at',
+        ascending: false,
       );
       return results.map(Service.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch services: $e');
     }
   }
+
 
   @override
   Future<Service> getServiceById({required String serviceId}) async {

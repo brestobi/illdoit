@@ -177,7 +177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: theme.colorScheme.surfaceVariant,
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Row(
         children: [
           Icon(Icons.info_outline, size: 16, color: theme.colorScheme.onSurfaceVariant),
@@ -258,7 +258,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Text(
               DateFormat('HH:mm').format(message.createdAt),
               style: TextStyle(
-                color: (isMe ? AppColors.darkBg : AppColors.textSecondary).withOpacity(0.7),
+                color: (isMe ? AppColors.darkBg : AppColors.textSecondary).withValues(alpha: 0.7),
                 fontSize: 10,
               ),
             ),

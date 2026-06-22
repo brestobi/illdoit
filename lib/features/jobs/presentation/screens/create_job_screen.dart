@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -13,6 +14,7 @@ import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/repositories/category_repository.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/jobs_provider.dart';
+import 'map_selection_screen.dart';
 
 class CreateJobScreen extends ConsumerStatefulWidget {
 
@@ -34,6 +36,7 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
   late DateTime _selectedDeadline;
   String? _selectedCategory;
   String? _selectedLocation;
+  LatLng? _selectedLatLng;
   late String _jobType;
   final List<dynamic> _images = [];
 
@@ -49,6 +52,9 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     _selectedCategory = job?.category;
     _jobType = job?.jobType ?? 'digital';
     _selectedLocation = job?.location;
+    if (job?.latitude != null && job?.longitude != null) {
+      _selectedLatLng = LatLng(job!.latitude!, job!.longitude!);
+    }
     if (job != null) {
       _images.addAll(job.images);
     }
@@ -87,6 +93,17 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
     }
   }
 
+  Future<void> _pickLocation() async {
+    final LatLng? picked = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MapSelectionScreen(initialPosition: _selectedLatLng),
+      ),
+    );
+    if (picked != null) {
+      setState(() => _selectedLatLng = picked);
+    }
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
@@ -103,6 +120,12 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
 
   Future<void> _handleSave() async {
     if (_formKey.currentState!.validate()) {
+      if (_jobType == 'physical' && _selectedLatLng == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a location on the map')),
+        );
+        return;
+      }
       final currentUser = ref.read(supabaseServiceProvider).currentUser;
       if (currentUser == null) return;
 
@@ -110,7 +133,6 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
       final jobNotifier = ref.read(jobNotifierProvider.notifier);
 
       try {
-        // Handle images in parallel
         final uploadTasks = _images.map((item) async {
           if (item is String) {
             return item;
@@ -131,6 +153,8 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
           'description': _descriptionController.text.trim(),
           'category': _selectedCategory,
           'location': _selectedLocation,
+          'latitude': _selectedLatLng?.latitude,
+          'longitude': _selectedLatLng?.longitude,
           'budget': double.parse(_budgetController.text),
           'deadline': _selectedDeadline.toIso8601String(),
           'images': imageUrls,
@@ -366,27 +390,17 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
 
                   // Location
                   if (_jobType == 'physical') ...[
-                    locationsAsync.when(
-                      data: (locations) => DropdownButtonFormField<String>(
-                        value: _selectedLocation,
-                        decoration: const InputDecoration(
-                          labelText: 'Job Location (City)',
-                          prefixIcon: Icon(Icons.location_on_outlined, size: 20),
-                        ),
-                        dropdownColor: Theme.of(context).colorScheme.surface,
-                        items: locations.map((loc) => DropdownMenuItem(
-                            value: loc.name,
-                            child: Text(loc.name),
-                          )).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _selectedLocation = value);
-                          }
-                        },
-                        validator: (value) => _jobType == 'physical' && value == null ? 'Location is required for physical jobs' : null,
+                    const Text('Location', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        icon: Icon(_selectedLatLng != null ? Icons.check_circle : Icons.map_outlined, 
+                            color: _selectedLatLng != null ? Colors.green : AppColors.primary),
+                        label: Text(_selectedLatLng != null ? 'Location Selected' : 'Pin Job Location'),
+                        onPressed: _pickLocation,
                       ),
-                      loading: () => const LinearProgressIndicator(),
-                      error: (err, _) => Text('Error loading cities: $err'),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -528,8 +542,11 @@ class _CreateJobScreenState extends ConsumerState<CreateJobScreen> {
         onTap: () {
            setState(() {
             _jobType = type;
-            _selectedCategory = null; // Reset category when switching type
-            if (type == 'digital') _selectedLocation = null;
+            _selectedCategory = null; 
+            if (type == 'digital') {
+                _selectedLocation = null;
+                _selectedLatLng = null;
+            }
           });
         },
         child: Container(

@@ -6,21 +6,19 @@ import '../../../../core/repositories/service_repository_impl.dart';
 import '../../../../core/repositories/job_repository_impl.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
 
-/// Provider for trending services
+/// Provider for trending services — fetches the 10 most recently created services
 final trendingServicesProvider = FutureProvider<List<Service>>((ref) async {
   final serviceRepository = ref.watch(serviceRepositoryProvider);
-  // For MVP, we just fetch the latest services as "trending"
-  return serviceRepository.getServices();
+  return serviceRepository.getServices(sortBy: 'created_at');
 });
 
-/// Provider for recent jobs
+/// Provider for recent open jobs — fetches the 5 most recently created open jobs
 final recentJobsProvider = FutureProvider<List<Job>>((ref) async {
   final jobRepository = ref.watch(jobRepositoryProvider);
-  // Fetch latest open jobs
   return jobRepository.getJobs(status: 'open');
 });
 
-/// Provider for recommended workers (job seekers)
+/// Provider for recommended workers (job seekers with highest rating)
 final recommendedWorkersProvider = FutureProvider<List<User>>((ref) async {
   final userRepository = ref.watch(userRepositoryProvider);
   return userRepository.getUsers(userType: 'job_seeker', limit: 5);

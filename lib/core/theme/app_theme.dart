@@ -62,7 +62,7 @@ class AppTheme {
         ).copyWith(
           overlayColor: WidgetStateProperty.resolveWith<Color?>(
             (states) {
-              if (states.contains(WidgetState.pressed)) return Colors.black.withOpacity(0.1);
+              if (states.contains(WidgetState.pressed)) return Colors.black.withValues(alpha: 0.1);
               return null;
             },
           ),
@@ -166,7 +166,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.lightSurface,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.05),
+        shadowColor: Colors.black.withValues(alpha: 0.05),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
           side: BorderSide(color: AppColors.lightBorder, width: 1),
