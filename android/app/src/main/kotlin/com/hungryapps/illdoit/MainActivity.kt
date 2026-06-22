@@ -1,4 +1,4 @@
-package com.example.ill_do_it
+package com.hungryapps.illdoit
 
 import io.flutter.embedding.android.FlutterActivity
 

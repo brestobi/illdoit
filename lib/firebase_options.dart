@@ -69,7 +69,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '797655594738',
     projectId: 'illdoit-app',
     storageBucket: 'illdoit-app.firebasestorage.app',
-    iosBundleId: 'com.example.illDoIt',
+    iosBundleId: 'com.hungryapps.illdoit',
   );
 
 }

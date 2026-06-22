@@ -7,6 +7,7 @@ import '../../../../core/repositories/app_config_repository.dart';
 import '../../../../core/services/invoice_service.dart';
 import '../providers/orders_provider.dart';
 import 'package:intl/intl.dart';
+import 'order_success_screen.dart';
 
 class MyOrdersScreen extends ConsumerStatefulWidget {
   const MyOrdersScreen({super.key});
@@ -156,19 +157,6 @@ class _OrderTile extends ConsumerWidget {
                   fontSize: 12,
                 ),
               ),
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/models/order.dart';
-import '../../../../core/repositories/order_repository_impl.dart';
-import '../../../../core/repositories/app_config_repository.dart';
-import '../../../../core/services/invoice_service.dart';
-import '../providers/orders_provider.dart';
-import 'package:intl/intl.dart';
-import 'order_success_screen.dart';
-
-// ... rest of the file content ...
-
               if (!isBuyer && order.status == OrderStatus.pending)
                 ElevatedButton(
                   onPressed: () {
@@ -182,18 +170,6 @@ import 'order_success_screen.dart';
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                   child: const Text('Accept'),
-                ),
-              if (!isBuyer && order.status == OrderStatus.accepted)
-                ElevatedButton(
-                  onPressed: null, // Disabled
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    disabledBackgroundColor: Colors.green.withOpacity(0.6),
-                    disabledForegroundColor: Colors.white,
-                    minimumSize: const Size(80, 32),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  child: const Text('Accepted'),
                 ),
               if (isBuyer && order.status == OrderStatus.accepted)
                 ElevatedButton(
@@ -212,7 +188,6 @@ import 'order_success_screen.dart';
                   ),
                   child: const Text('Complete'),
                 ),
-// ... rest of the file ...
               if (order.status == OrderStatus.completed)
                 OutlinedButton.icon(
                   onPressed: () {

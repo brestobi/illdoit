@@ -272,14 +272,17 @@ class WalletScreen extends ConsumerWidget {
             currency: 'ZAR', 
             reference: 'cash_in_${DateTime.now().millisecondsSinceEpoch}'
         );
+        debugPrint('Yoco payment data: $paymentData');
         
         final checkoutUrl = paymentData['checkout_url'] as String;
         final paymentId = paymentData['payment_id'] as String;
+        debugPrint('Navigating to Yoco payment: $checkoutUrl');
         
         final success = await context.push<bool>(
             AppRoutes.yocoPayment, 
             extra: {'checkoutUrl': checkoutUrl, 'callbackUrl': 'https://illdoit.space/payment-success'}
         );
+        debugPrint('Yoco payment returned: $success');
         
         if (success == true) {
             final verified = await paymentService.verifyPayment(paymentId);
