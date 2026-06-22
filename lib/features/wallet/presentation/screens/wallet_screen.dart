@@ -167,7 +167,7 @@ class WalletScreen extends ConsumerWidget {
 
   Widget _buildWithdrawalItem(WithdrawalRequest req) {
     final currencyFormat = NumberFormat.currency(symbol: 'R ', decimalDigits: 2);
-    final dateStr = DateFormat('MMM dd, yyyy').format(req.createdAt ?? DateTime.now());
+    final dateStr = DateFormat('MMM dd, yyyy').format(req.createdAt);
     
     Color statusColor = AppColors.primary;
     if (req.status == 'approved' || req.status == 'completed') statusColor = AppColors.success;

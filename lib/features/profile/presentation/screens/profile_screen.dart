@@ -221,6 +221,17 @@ class ProfileScreen extends ConsumerWidget {
                 height: 48,
                 child: OutlinedButton(
                   onPressed: () {
+                    context.push(AppRoutes.wallet);
+                  },
+                  child: const Text('Wallet'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: () {
                     context.push(AppRoutes.editProfile);
                   },
                   child: const Text('Edit Profile'),
@@ -490,54 +501,4 @@ Widget _buildStatSection(BuildContext context, dynamic user, AsyncValue<double> 
       ),
     );
   }
-
-  Widget _buildWorkCard() => Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Company Logo Design',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Completed 2 weeks ago',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.arrow_forward,
-            color: AppColors.textSecondary,
-          ),
-        ],
-      ),
-    );
 }

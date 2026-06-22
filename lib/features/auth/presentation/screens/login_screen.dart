@@ -7,7 +7,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../core/widgets/app_animations.dart';
 import '../providers/auth_provider.dart';

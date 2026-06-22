@@ -62,7 +62,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Listen for errors or success
     ref.listen<AuthState>(authProvider, (previous, next) {

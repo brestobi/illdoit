@@ -89,7 +89,6 @@ class RouterNotifier extends ChangeNotifier {
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authState = _ref.read(authProvider);
-    final profileAsync = _ref.read(profileProvider);
     
     final isLoading = authState.isLoading;
     final isAuthenticated = authState.isAuthenticated;

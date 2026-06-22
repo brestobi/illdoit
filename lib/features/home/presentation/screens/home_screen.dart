@@ -63,32 +63,6 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               actions: [
-// ...
-                ScaleOnTap(
-                  onTap: () => context.push(AppRoutes.wallet),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.wallet_outlined, size: 18, color: AppColors.primary),
-                        SizedBox(width: 6),
-                        Text(
-                          'Wallet',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 Consumer(
                   builder: (context, ref, child) {
                     final unreadCount = ref.watch(unreadNotificationCountProvider);

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase show Provider;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../errors/app_exceptions.dart';
 
@@ -9,7 +10,6 @@ final supabaseServiceProvider = Provider<SupabaseService>((ref) => SupabaseServi
 
 /// Service for Supabase operations
 class SupabaseService {
-  static Supabase? _instance;
 
   SupabaseClient get client => Supabase.instance.client;
 
@@ -182,7 +182,7 @@ class SupabaseService {
       final response = await query;
       return (response as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } catch (e) {
-      print('Supabase query error on table $table: $e');
+      debugPrint('Supabase query error on table $table: $e');
       throw ServerException('Query failed: $e');
     }
   }
@@ -196,7 +196,7 @@ class SupabaseService {
       final response = await client.from(table).insert(data).select();
       return Map<String, dynamic>.from((response as List).first as Map);
     } catch (e) {
-      print('Supabase insert error on table $table: $e');
+      debugPrint('Supabase insert error on table $table: $e');
       throw ServerException('Insert failed: $e');
     }
   }
@@ -215,7 +215,7 @@ class SupabaseService {
           .select();
       return Map<String, dynamic>.from((response as List).first as Map);
     } catch (e) {
-      print('Supabase update error on table $table: $e');
+      debugPrint('Supabase update error on table $table: $e');
       throw ServerException('Update failed: $e');
     }
   }
@@ -249,7 +249,7 @@ class SupabaseService {
           );
       return client.storage.from(bucket).getPublicUrl(path);
     } catch (e) {
-      print('File upload error: $e');
+      debugPrint('File upload error: $e');
       throw ServerException('File upload failed: $e');
     }
   }

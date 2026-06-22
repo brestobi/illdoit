@@ -13,9 +13,7 @@ import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_map_widget.dart';
 import '../../../../core/repositories/location_repository.dart';
 import '../../../../core/repositories/category_repository.dart';
-import '../../../../core/utils/category_utils.dart';
 import '../providers/explore_provider.dart';
-import '../../../jobs/presentation/providers/jobs_provider.dart';
 import '../../../../core/repositories/job_repository_impl.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
@@ -69,9 +67,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     final searchType = ref.watch(searchTypeProvider);
-    final selectedCategory = ref.watch(selectedCategoryProvider);
-    final locationsAsync = ref.watch(locationsProvider);
-    final categoriesAsync = ref.watch(allCategoriesProvider);
     final resultsAsync = searchType == SearchType.services
         ? ref.watch(exploreServicesProvider)
         : (searchType == SearchType.jobs
@@ -227,38 +222,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     );
   }
 
-  Widget _buildCategoryCard(String name, IconData icon, bool isSelected) => GestureDetector(
-      onTap: () => ref.read(selectedCategoryProvider.notifier).state = name,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.outline.withOpacity(0.5),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primary : AppColors.textTertiary,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              name,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
 
   Widget _buildEmptyState() => Center(
       child: Padding(

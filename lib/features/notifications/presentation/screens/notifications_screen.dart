@@ -198,7 +198,6 @@ class _NotificationItem extends ConsumerWidget {
     final data = notification.data;
     switch (notification.type) {
       case 'chat':
-        final chatId = data['chat_id'];
         final senderId = data['sender_id'];
         if (senderId != null) {
           context.push(AppRoutes.chat.replaceFirst(':id', senderId), extra: 'User');

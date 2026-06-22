@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../providers/jobs_provider.dart';
