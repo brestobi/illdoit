@@ -46,6 +46,7 @@ app.*.map.json
 .env
 .env.local
 .env.*.local
+android/key.properties
 
 # Generated files
 *.g.dart
