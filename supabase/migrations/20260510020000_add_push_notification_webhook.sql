@@ -9,7 +9,8 @@ BEGIN
     net.http_post(
       url := 'https://bvnaffajgxxylatshlwc.supabase.co/functions/v1/push_notifications',
       headers := jsonb_build_object(
-        'Content-Type', 'application/json'
+        'Content-Type', 'application/json',
+        'x-webhook-secret', 'my-very-secret-password-12345'
       ),
       body := jsonb_build_object('record', row_to_json(NEW))
     );

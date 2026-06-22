@@ -14,6 +14,12 @@ export default async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // TEMPORARY FIX: Verify custom secret header
+    const webhookSecret = req.headers.get('x-webhook-secret');
+    if (webhookSecret !== Deno.env.get('WEBHOOK_SECRET')) {
+       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    }
+
     // 1. Parse the incoming database webhook payload from notifications table
     const { record } = await req.json();
     const { user_id, type, title, body, data } = record;
