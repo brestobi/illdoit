@@ -159,9 +159,12 @@ class SupabaseService {
     String? select,
     Map<String, dynamic>? filters,
     Map<String, String>? searchFilters,
+    String? orderBy,
+    bool ascending = false,
+    int? limit,
   }) async {
     try {
-      var query = client.from(table).select(select ?? '*');
+      dynamic query = client.from(table).select(select ?? '*');
 
       if (filters != null) {
         filters.forEach((key, value) {
@@ -179,6 +182,14 @@ class SupabaseService {
         });
       }
 
+      if (orderBy != null) {
+        query = query.order(orderBy, ascending: ascending);
+      }
+
+      if (limit != null) {
+        query = query.limit(limit);
+      }
+
       final response = await query;
       return (response as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } catch (e) {
@@ -186,6 +197,7 @@ class SupabaseService {
       throw ServerException('Query failed: $e');
     }
   }
+
 
   /// Insert data
   Future<Map<String, dynamic>> insert({

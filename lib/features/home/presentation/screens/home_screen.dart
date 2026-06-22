@@ -14,6 +14,7 @@ import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../core/widgets/app_animations.dart';
+import '../../../jobs/presentation/screens/job_map_discovery_screen.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../explore/presentation/providers/explore_provider.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
@@ -114,10 +115,10 @@ class HomeScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.surface,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+                              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
                               boxShadow: isDark ? [] : [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 15,
                                   offset: const Offset(0, 5),
                                 ),
@@ -197,12 +198,12 @@ class HomeScreen extends ConsumerWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                AppColors.primary.withOpacity(0.2),
-                                AppColors.primary.withOpacity(0.05),
+                                AppColors.primary.withValues(alpha: 0.2),
+                                AppColors.primary.withValues(alpha: 0.05),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [
@@ -270,7 +271,21 @@ class HomeScreen extends ConsumerWidget {
 
                   // Recent Jobs List
                   _buildSectionHeader(context, 'Recent Jobs', () => context.go(AppRoutes.jobs)),
+                  const SizedBox(height: 8),
+                  
+                  // Map Exploration Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const JobMapDiscoveryScreen())
+                      ),
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('View Physical Jobs on Map'),
+                    ),
+                  ),
                   const SizedBox(height: 16),
+                  
                   recentJobsAsync.when(
                     data: (jobs) => jobs.isEmpty
                         ? _buildEmptyState(context, 'No jobs available')
@@ -393,7 +408,7 @@ class HomeScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
             ),
             child: Icon(icon, color: AppColors.primary, size: 28),
           ),
@@ -413,7 +428,7 @@ class HomeScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,7 +442,7 @@ class HomeScreen extends ConsumerWidget {
                         width: double.infinity,
                         fit: BoxFit.cover,
                       )
-                    : Container(color: AppColors.primary.withOpacity(0.1), child: const Icon(Icons.image_outlined)),
+                    : Container(color: AppColors.primary.withValues(alpha: 0.1), child: const Icon(Icons.image_outlined)),
               ),
             ),
             Padding(
@@ -474,7 +489,7 @@ class HomeScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [
@@ -494,7 +509,7 @@ class HomeScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
@@ -515,7 +530,7 @@ class HomeScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [

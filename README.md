@@ -1,177 +1,76 @@
-# Supabase CLI
+# I'll Do It
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=develop)](https://coveralls.io/github/supabase/cli?branch=develop) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+Welcome to the **I'll Do It** mobile application repository!
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+"I'll Do It" is a South African work and hustle platform designed to connect people who need jobs done with talented individuals ready to hustle. From digital tasks to physical services, we make it easy to find help or offer your skills.
 
-This repository contains all the functionality for Supabase CLI.
+## 🚀 Key Features
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+*   **Diverse Hustle:** Browse both Digital and Physical services.
+*   **Map Exploration:** Find physical jobs near you using our integrated Map view.
+*   **Smart Matching:** Easily post jobs and get connected with verified hustlers.
+*   **Secure Payments:** Integrated wallet system for safe financial transactions.
+*   **Community Trust:** Ratings, reviews, and ID verification systems ensure a safe and reliable platform.
+*   **Real-time Updates:** Push notifications to keep you informed about your orders and applications.
 
-## Getting started
+## 🛠 Tech Stack
 
-### Install the CLI
+*   **Framework:** Flutter (Mobile)
+*   **Backend as a Service:** Supabase (Auth, Database, Real-time)
+*   **State Management:** Riverpod
+*   **Navigation:** GoRouter
+*   **Maps:** Google Maps Flutter
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+## 📱 Getting Started
 
-```bash
-npm i supabase --save-dev
-```
+### Prerequisites
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+*   Flutter SDK (v3.0+)
+*   Dart SDK (v3.0+)
+*   Android Studio / Xcode
+*   A Supabase project setup
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+### Installation
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-repo/illdoit-app.git
+    cd illdoit-app
+    ```
 
-<details>
-  <summary><b>macOS</b></summary>
+2.  **Install dependencies:**
+    ```bash
+    flutter pub get
+    ```
 
-  Available via [Homebrew](https://brew.sh). To install:
+3.  **Configure Environment:**
+    Ensure you have your Supabase URL and Anon Key set up in your configuration (refer to `APP_README.md` for specific configuration paths).
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
+4.  **Run the app:**
+    ```bash
+    flutter run
+    ```
 
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
+## 📖 Documentation
 
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
+For detailed architecture, design, and development guidelines, please refer to:
+- [`APP_README.md`](APP_README.md): Detailed project structure and features.
+- [`ROADMAP.md`](ROADMAP.md): Future development plan.
 
-<details>
-  <summary><b>Windows</b></summary>
+## 🤝 Contributing
 
-  Available via [Scoop](https://scoop.sh). To install:
+We welcome contributions! Please follow our Git workflow:
+1. Create a feature branch (`feature/your-feature`).
+2. Commit with meaningful messages.
+3. Open a Pull Request.
 
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
+## 📄 License
 
-  To upgrade:
+This project is proprietary and confidential.
 
-  ```powershell
-  scoop update supabase
-  ```
-</details>
+## 💬 Contact
 
-<details>
-  <summary><b>Linux</b></summary>
+For questions or support, contact the development team at [support@illdoit.co.za](mailto:support@illdoit.co.za).
 
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
-```bash
-supabase bootstrap
-```
-
-Or using npx:
-
-```bash
-npx supabase bootstrap
-```
-
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
-
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
-```
+---
+**Happy hustling! 🚀**
