@@ -252,13 +252,22 @@ class _ApplicantHeader extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    user.displayName,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        user.displayName,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (user.isVerified) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.verified, size: 14, color: AppColors.primary),
+                      ],
+                    ],
                   ),
                   Row(
                     children: [

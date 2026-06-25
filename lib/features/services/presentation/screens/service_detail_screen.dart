@@ -286,13 +286,22 @@ class _SellerCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    user.displayName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        user.displayName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (user.isVerified) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.verified, size: 16, color: AppColors.primary),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
