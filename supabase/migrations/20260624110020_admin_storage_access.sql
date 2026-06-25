@@ -5,6 +5,7 @@
 -- so they can review uploaded identity documents during verification.
 
 -- Admin read access to verification-docs bucket
+DROP POLICY IF EXISTS "Admins can read verification documents" ON storage.objects;
 CREATE POLICY "Admins can read verification documents" ON storage.objects
   FOR SELECT
   USING (

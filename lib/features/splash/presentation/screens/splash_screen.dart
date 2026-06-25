@@ -29,6 +29,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final isAuthenticated = authState.isAuthenticated;
     final suspensionMessage = authState.suspensionMessage;
 
+    // Password recovery flow — user came from email reset link
+    if (suspensionMessage == '__PASSWORD_RECOVERY__') {
+      context.go(AppRoutes.recoveryPassword);
+      return;
+    }
+
     if (suspensionMessage != null) {
       // Stay on splash — the build method will show the suspension screen
       return;
@@ -46,8 +52,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final authState = ref.watch(authProvider);
     final suspensionMessage = authState.suspensionMessage;
 
-    // If there's a suspension message, show the restriction screen
-    if (suspensionMessage != null) {
+    // If there's a suspension message (and it's not the recovery sentinel), show the restriction screen
+    if (suspensionMessage != null && suspensionMessage != '__PASSWORD_RECOVERY__') {
       return Scaffold(
         backgroundColor: AppColors.darkBg,
         body: Center(

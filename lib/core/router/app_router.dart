@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/phone_login_screen.dart';
+import '../../features/auth/presentation/screens/recovery_password_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/explore/presentation/screens/explore_screen.dart';
@@ -49,6 +51,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String forgotPassword = '/forgot-password';
+  static const String recoveryPassword = '/recovery-password';
   static const String phoneLogin = '/phone-login';
   static const String otpVerify = '/otp-verify';
   static const String onboarding = '/onboarding';
@@ -166,6 +169,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.recoveryPassword,
+        builder: (context, state) => RecoveryPasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.phoneLogin,

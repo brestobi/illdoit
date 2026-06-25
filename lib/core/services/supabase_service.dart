@@ -86,7 +86,10 @@ class SupabaseService {
   /// Reset password
   Future<void> resetPassword({required String email}) async {
     try {
-      await client.auth.resetPasswordForEmail(email);
+      await client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'illdoit://login-callback/',
+      );
     } on AuthException catch (e) {
       throw AuthenticationException(e.message);
     } catch (e) {

@@ -55,9 +55,11 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Services
 DROP TRIGGER IF EXISTS check_account_before_insert_services ON public.services;
 DROP TRIGGER IF EXISTS check_account_before_update_services ON public.services;
+DROP TRIGGER IF EXISTS check_can_post_before_insert_services ON public.services;
 CREATE TRIGGER check_can_post_before_insert_services
   BEFORE INSERT ON public.services
   FOR EACH ROW EXECUTE FUNCTION public.check_can_post_or_withdraw();
+DROP TRIGGER IF EXISTS check_can_post_before_update_services ON public.services;
 CREATE TRIGGER check_can_post_before_update_services
   BEFORE UPDATE ON public.services
   FOR EACH ROW EXECUTE FUNCTION public.check_can_post_or_withdraw();
@@ -65,9 +67,11 @@ CREATE TRIGGER check_can_post_before_update_services
 -- Jobs
 DROP TRIGGER IF EXISTS check_account_before_insert_jobs ON public.jobs;
 DROP TRIGGER IF EXISTS check_account_before_update_jobs ON public.jobs;
+DROP TRIGGER IF EXISTS check_can_post_before_insert_jobs ON public.jobs;
 CREATE TRIGGER check_can_post_before_insert_jobs
   BEFORE INSERT ON public.jobs
   FOR EACH ROW EXECUTE FUNCTION public.check_can_post_or_withdraw();
+DROP TRIGGER IF EXISTS check_can_post_before_update_jobs ON public.jobs;
 CREATE TRIGGER check_can_post_before_update_jobs
   BEFORE UPDATE ON public.jobs
   FOR EACH ROW EXECUTE FUNCTION public.check_can_post_or_withdraw();
@@ -75,9 +79,11 @@ CREATE TRIGGER check_can_post_before_update_jobs
 -- Withdrawal Requests
 DROP TRIGGER IF EXISTS check_account_before_insert_withdrawals ON public.withdrawal_requests;
 DROP TRIGGER IF EXISTS check_account_before_update_withdrawals ON public.withdrawal_requests;
+DROP TRIGGER IF EXISTS check_can_post_before_insert_withdrawals ON public.withdrawal_requests;
 CREATE TRIGGER check_can_post_before_insert_withdrawals
   BEFORE INSERT ON public.withdrawal_requests
   FOR EACH ROW EXECUTE FUNCTION public.check_can_post_or_withdraw();
+DROP TRIGGER IF EXISTS check_can_post_before_update_withdrawals ON public.withdrawal_requests;
 CREATE TRIGGER check_can_post_before_update_withdrawals
   BEFORE UPDATE ON public.withdrawal_requests
   FOR EACH ROW EXECUTE FUNCTION public.check_can_post_or_withdraw();

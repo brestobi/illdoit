@@ -1,0 +1,2 @@
+-- Consolidated admin schema migration (already applied remotely)
+-- Placeholder to reconcile remote migration history with local files.

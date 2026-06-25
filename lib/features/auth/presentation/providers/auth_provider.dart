@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
 import '../../../../core/models/user.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 /// State for authentication
@@ -51,6 +53,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
         _ref.read(notificationServiceProvider).updateToken();
         // Check if user is suspended/banned
         await _checkSuspension();
+      }
+
+      // Password recovery flow — user clicked reset link in email
+      if (event.event == supabase.AuthChangeEvent.passwordRecovery) {
+        state = state.copyWith(
+          user: user,
+          isLoading: false,
+          suspensionMessage: '__PASSWORD_RECOVERY__',
+        );
+        // Navigate to recovery screen (works for both cold start and foreground)
+        try {
+          _ref.read(goRouterProvider).go(AppRoutes.recoveryPassword);
+        } catch (_) {
+          // Router may not be ready yet on cold start; splash screen handles it
+        }
       }
     });
 

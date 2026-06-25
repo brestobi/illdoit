@@ -67,7 +67,9 @@ class _SuspensionBannerState extends ConsumerState<SuspensionBanner>
     final authState = ref.watch(authProvider);
     final suspensionMessage = authState.suspensionMessage;
 
-    final shouldShow = suspensionMessage != null && !_isDismissed;
+    final shouldShow = suspensionMessage != null && 
+        suspensionMessage != '__PASSWORD_RECOVERY__' && 
+        !_isDismissed;
 
     if (shouldShow && _animationController.isDismissed) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _show());
