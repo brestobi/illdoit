@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/repositories/user_repository_impl.dart';
+import '../../../../core/models/user.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 /// State for authentication
@@ -12,10 +13,12 @@ class AuthState {
     this.isLoading = false,
     this.errorMessage,
     this.user,
+    this.suspensionMessage,
   });
   final bool isLoading;
   final String? errorMessage;
   final supabase.User? user;
+  final String? suspensionMessage;
 
   bool get isAuthenticated => user != null;
 
@@ -23,10 +26,12 @@ class AuthState {
     bool? isLoading,
     String? errorMessage,
     supabase.User? user,
+    String? suspensionMessage,
   }) => AuthState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       user: user ?? this.user,
+      suspensionMessage: suspensionMessage ?? this.suspensionMessage,
     );
 }
 
@@ -35,7 +40,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   AuthNotifier(this._supabaseService, this._ref) : super(AuthState(user: _supabaseService.currentUser)) {
     // Listen to auth state changes
-    _supabaseService.authStateChanges.listen((event) {
+    _supabaseService.authStateChanges.listen((event) async {
       final user = event.session?.user;
       state = state.copyWith(user: user, isLoading: false);
       
@@ -43,11 +48,46 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (user != null && (event.event == supabase.AuthChangeEvent.signedIn || event.event == supabase.AuthChangeEvent.tokenRefreshed)) {
         _ref.read(userRepositoryProvider).ensureProfileExists();
         _ref.read(notificationServiceProvider).updateToken();
+        // Check if user is suspended/banned
+        await _checkSuspension();
       }
     });
   }
   final SupabaseService _supabaseService;
   final Ref _ref;
+
+  /// Check if the current user's account is suspended or banned.
+  /// If so, sign them out and set a suspension message.
+  Future<void> _checkSuspension() async {
+    final currentUser = _supabaseService.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      final data = await _supabaseService.query(
+        table: 'users',
+        filters: {'id': currentUser.id},
+      );
+
+      if (data.isEmpty) return;
+
+      final accountStatus = data.first['account_status'] as String? ?? 'active';
+      final suspensionReason = data.first['suspension_reason'] as String?;
+
+      if (accountStatus == 'suspended' || accountStatus == 'banned') {
+        final message = accountStatus == 'suspended'
+            ? 'Your account has been suspended.\nReason: ${suspensionReason ?? "No reason provided"}\n\nPlease contact support for assistance.'
+            : 'Your account has been permanently banned.\nReason: ${suspensionReason ?? "No reason provided"}\n\nThis action cannot be reversed.';
+
+        await _supabaseService.signOut();
+        state = state.copyWith(
+          user: null,
+          suspensionMessage: message,
+        );
+      }
+    } catch (_) {
+      // Silently fail — don't block the user on a check error
+    }
+  }
 
   /// Sign up with email and password
   Future<void> signUp({
@@ -95,6 +135,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Update push token
       await _ref.read(notificationServiceProvider).updateToken();
       
+      // Check if user is suspended/banned
+      await _checkSuspension();
+      
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -116,7 +159,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Sign out
   Future<void> signOut() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true, errorMessage: null, suspensionMessage: null);
     try {
       await _supabaseService.signOut();
       state = state.copyWith(isLoading: false);
@@ -180,6 +223,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       // Update push token
       await _ref.read(notificationServiceProvider).updateToken();
+      
+      // Check if user is suspended/banned
+      await _checkSuspension();
       
       state = state.copyWith(isLoading: false);
     } catch (e) {

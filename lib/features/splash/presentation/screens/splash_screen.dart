@@ -25,7 +25,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    final isAuthenticated = ref.read(authProvider).isAuthenticated;
+    final authState = ref.read(authProvider);
+    final isAuthenticated = authState.isAuthenticated;
+    final suspensionMessage = authState.suspensionMessage;
+
+    if (suspensionMessage != null) {
+      // Stay on splash — the build method will show the suspension screen
+      return;
+    }
 
     if (isAuthenticated) {
       context.go(AppRoutes.home);
@@ -35,7 +42,64 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final suspensionMessage = authState.suspensionMessage;
+
+    // If there's a suspension message, show the restriction screen
+    if (suspensionMessage != null) {
+      return Scaffold(
+        backgroundColor: AppColors.darkBg,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.gpp_bad, size: 80, color: Colors.redAccent),
+                const SizedBox(height: 24),
+                Text(
+                  'Account Restricted',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  suspensionMessage,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.white70,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () {
+                    ref.read(authProvider.notifier).signOut();
+                    context.go(AppRoutes.login);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Go to Login', style: TextStyle(fontSize: 16)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
       backgroundColor: AppColors.darkBg,
       body: Stack(
         fit: StackFit.expand,
@@ -101,4 +165,5 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         ],
       ),
     );
+  }
 }
