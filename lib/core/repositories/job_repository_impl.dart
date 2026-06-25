@@ -69,6 +69,28 @@ class JobRepositoryImpl implements JobRepository {
   @override
   Future<List<Job>> getJobs({String? status, String? category, String? location}) async {
     try {
+      if (status == 'applied') {
+        final currentUser = _supabaseService.currentUser;
+        if (currentUser == null) throw AuthenticationException('No user logged in');
+        
+        // Fetch applications
+        final applications = await _supabaseService.query(
+          table: 'job_applications',
+          filters: {'applicant_id': currentUser.id},
+        );
+        
+        if (applications.isEmpty) return [];
+        
+        final jobIds = applications.map((app) => app['job_id'] as String).toList();
+        
+        // Fetch jobs
+        final results = await _supabaseService.query(
+          table: 'jobs',
+          filters: {'id': jobIds},
+        );
+        return results.map(Job.fromJson).toList();
+      }
+
       final filters = <String, dynamic>{};
       if (status != null) filters['status'] = status;
       if (category != null) filters['category'] = category;

@@ -95,7 +95,7 @@ class ManageApplicationsScreen extends ConsumerWidget {
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: applications.length,
-                    itemBuilder: (context, index) => _buildApplicationCard(context, ref, applications[index]),
+                    itemBuilder: (context, index) => _buildApplicationCard(context, ref, job, applications[index]),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -110,7 +110,13 @@ class ManageApplicationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildApplicationCard(BuildContext context, WidgetRef ref, JobApplication application) => Container(
+  bool _isRestrictedHours() {
+    final now = DateTime.now();
+    final hour = now.hour;
+    return hour >= 16 || hour < 7; // 4 PM to 7 AM
+  }
+
+  Widget _buildApplicationCard(BuildContext context, WidgetRef ref, dynamic job, JobApplication application) => Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -174,7 +180,29 @@ class ManageApplicationsScreen extends ConsumerWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => _handleStatusUpdate(ref, application.id, ApplicationStatus.accepted),
+                          onPressed: () {
+                            if (job.jobType == 'physical' && _isRestrictedHours()) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: AppColors.surface,
+                                  title: const Text('⚠️ Safety Time Restriction', style: TextStyle(color: AppColors.textPrimary)),
+                                  content: const Text(
+                                    'Physical jobs cannot be accepted or performed between 4:00 PM and 7:00 AM for safety reasons.\n\nPlease accept this application after 7:00 AM.',
+                                    style: TextStyle(color: AppColors.textSecondary),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              return;
+                            }
+                            _handleStatusUpdate(ref, application.id, ApplicationStatus.accepted);
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.success,
                             foregroundColor: Colors.white,

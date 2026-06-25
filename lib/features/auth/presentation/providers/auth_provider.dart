@@ -24,6 +24,7 @@ class AuthState {
   final String? suspensionMessage;
 
   bool get isAuthenticated => user != null;
+  bool get isSuspended => suspensionMessage != null;
 
   AuthState copyWith({
     bool? isLoading,

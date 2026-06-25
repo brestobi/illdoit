@@ -200,7 +200,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     try {
       final paymentId = DateTime.now().millisecondsSinceEpoch.toString();
       final reference = 'DEPOSIT-$paymentId';
-      final checkoutUrl = await paymentService.createCheckoutSession(amount: amount, reference: reference);
+      final paymentData = await paymentService.createYocoCheckout(amount: amount, currency: 'ZAR', reference: reference);
+      final checkoutUrl = paymentData['checkout_url'] as String;
       
       // Create the pending transaction BEFORE opening the payment page.
       await ref.read(transactionRepositoryProvider).depositFunds(

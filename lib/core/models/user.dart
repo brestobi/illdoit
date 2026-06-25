@@ -37,8 +37,8 @@ class User with _$User {
     @JsonKey(name: 'show_contact_info') @Default(false) bool showContactInfo,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'account_status') @Default('active') String accountStatus,
-    @JsonKey(name: 'suspension_reason') String? suspensionReason,
-    @JsonKey(name: 'suspended_until') DateTime? suspendedUntil,
+    @JsonKey(name: 'suspension_reason') @Default(null) String? suspensionReason,
+    @JsonKey(name: 'suspended_until') @Default(null) DateTime? suspendedUntil,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _User;
 

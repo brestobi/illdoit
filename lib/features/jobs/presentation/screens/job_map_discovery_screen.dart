@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/models/job.dart';
 
@@ -35,30 +37,72 @@ class _JobMapDiscoveryScreenState extends ConsumerState<JobMapDiscoveryScreen> {
   LatLng? _currentPosition;
   BitmapDescriptor? _customIcon;
 
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
     _initializeMap();
   }
 
+  Future<BitmapDescriptor> _getBitmapDescriptorFromSvg(String assetPath, Size size) async {
+    final pictureInfo = await vg.loadPicture(SvgAssetLoader(assetPath), null);
+    final picture = pictureInfo.picture;
+    final ui.Image image = await picture.toImage(size.width.toInt(), size.height.toInt());
+    final ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (bytes == null) {
+      throw Exception('Failed to serialize SVG picture');
+    }
+    return BitmapDescriptor.bytes(bytes.buffer.asUint8List());
+  }
+
   Future<void> _initializeMap() async {
-    final icon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(48, 48)),
-      'assets/icons/icon.png',
-    );
-    
-    final position = await Geolocator.getCurrentPosition();
-    
-    if (mounted) {
-      setState(() {
-        _customIcon = icon;
-        _currentPosition = LatLng(position.latitude, position.longitude);
-      });
+    try {
+      // Load custom SVG logo.svg as BitmapDescriptor with a standard marker size (e.g. 120x120 pixels)
+      final icon = await _getBitmapDescriptorFromSvg(
+        'assets/icons/logo.svg',
+        const Size(120, 120),
+      );
+      
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+      
+      final position = await Geolocator.getCurrentPosition();
+      
+      if (mounted) {
+        setState(() {
+          _customIcon = icon;
+          _currentPosition = LatLng(position.latitude, position.longitude);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(child: Text(_errorMessage!)),
+      );
+    }
+
     if (_currentPosition == null || _customIcon == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

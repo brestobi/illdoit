@@ -38,7 +38,15 @@ class OrderRepositoryImpl implements OrderRepository {
       );
       final order = Order.fromJson(response);
 
-      // 2. Create escrow transaction
+      // 2. Increment total_orders for the service
+      await _supabaseService.client.rpc('increment', params: {
+        'row_id': serviceId,
+        'table': 'services',
+        'column': 'total_orders',
+        'amount': 1,
+      });
+
+      // 3. Create escrow transaction
       await _ref.read(transactionRepositoryProvider).createEscrowPayment(
         amount: amount,
         receiverId: sellerId,

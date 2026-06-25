@@ -290,27 +290,38 @@ abstract class DisputeRepository {
 }
 
 /// Abstract repository for message operations
+/// All messaging is scoped to active (in_progress) jobs.
 abstract class MessageRepository {
-  /// Send a message
+  /// Send a message — only allowed when an in_progress job links the two parties.
+  /// Physical jobs are additionally blocked between 4 PM and 7 AM.
   Future<Message> sendMessage({
     required String receiverId,
     required String content,
     String? imageUrl,
+    String? jobId,
+    String messageType,
+    Map<String, dynamic>? metadata,
   });
 
-  /// Get messages between two users
-  Future<List<Message>> getChatMessages({required String otherUserId});
+  /// Get messages between two users, optionally scoped to a specific job
+  Future<List<Message>> getChatMessages({
+    required String otherUserId,
+    String? jobId,
+  });
 
-  /// Get all chat conversations for current user
+  /// Get all active job conversations for current user
   Future<List<Map<String, dynamic>>> getConversations();
 
-  /// Mark messages as read
-  Future<void> markAsRead({required String senderId});
+  /// Mark messages as read, optionally scoped to a job
+  Future<void> markAsRead({required String senderId, String? jobId});
 
-  /// Stream of new messages for a conversation
-  Stream<List<Message>> watchMessages({required String otherUserId});
+  /// Stream of new messages for a conversation, optionally scoped to a job
+  Stream<List<Message>> watchMessages({
+    required String otherUserId,
+    String? jobId,
+  });
 
-  /// Stream of all conversations
+  /// Stream of all active job conversations
   Stream<List<Map<String, dynamic>>> watchConversations();
 }
 
