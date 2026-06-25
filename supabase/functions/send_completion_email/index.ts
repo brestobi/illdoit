@@ -41,7 +41,7 @@ serve(async (req) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "I'll Do It <noreply@illdoit.com>",
+        from: "I'll Do It <noreply@updates.illdoit.space>",
         to: [buyer.email, seller.email],
         subject: `Order ${order_id} Completed`,
         html: `<h1>Order Completed</h1><p>Your order ${order_id} has been marked as completed.</p>`,
