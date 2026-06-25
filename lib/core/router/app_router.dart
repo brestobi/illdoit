@@ -41,6 +41,7 @@ import '../../features/wallet/presentation/screens/yoco_payment_screen.dart';
 import '../../features/wallet/presentation/screens/pin_screen.dart';
 
 import '../../features/jobs/presentation/screens/job_detail_screen.dart';
+import '../../features/safety/presentation/screens/safety_tips_screen.dart';
 
 import '../models/service.dart';
 import '../models/job.dart';
@@ -74,6 +75,7 @@ class AppRoutes {
   static const String wallet = '/wallet';
   static const String yocoPayment = '/yoco-payment';
   static const String walletPin = '/wallet-pin';
+  static const String safetyTips = '/safety-tips';
   static const String notifications = '/notifications';
   static const String messages = '/messages';
   static const String chat = '/chat/:id';
@@ -288,6 +290,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             callbackUrl: extra['callbackUrl'] as String,
           );
         },
+      ),
+      // Safety
+      GoRoute(
+        path: AppRoutes.safetyTips,
+        builder: (context, state) => const SafetyTipsScreen(),
       ),
       GoRoute(
         path: AppRoutes.walletPin,

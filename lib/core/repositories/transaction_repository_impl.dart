@@ -94,13 +94,12 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<Transaction> depositFunds({
     required double amount,
     required String reference,
-    required String gateway,
+    required String paymentId,
   }) async {
     final currentUser = _supabaseService.currentUser;
     if (currentUser == null) throw AuthenticationException('No user logged in');
 
     try {
-      // Simulate gateway success
       final response = await _supabaseService.insert(
         table: 'transactions',
         data: {
@@ -108,8 +107,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
           'receiver_id': currentUser.id,
           'amount': amount,
           'type': 'deposit',
-          'status': 'completed',
-          'reference': '$gateway: $reference',
+          'status': 'pending',
+          'reference': 'Yoco: $reference',
+          'payment_id': paymentId,
         },
       );
       return Transaction.fromJson(response);

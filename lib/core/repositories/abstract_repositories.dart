@@ -235,11 +235,12 @@ abstract class TransactionRepository {
   /// Get total earned amount
   Future<double> getTotalEarned();
 
-  /// Deposit funds into wallet
+  /// Create a pending deposit transaction linked to a payment record.
+  /// The transaction stays 'pending' until the payment webhook marks it 'completed'.
   Future<Transaction> depositFunds({
     required double amount,
     required String reference,
-    required String gateway, // Ozow, PayFast, etc.
+    required String paymentId,
   });
 
   /// Request withdrawal

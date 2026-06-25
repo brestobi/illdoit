@@ -154,19 +154,20 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         categoriesAsync.when(
                           data: (categories) => SizedBox(
-                            height: 90,
+                            height: 100,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: categories.length > 10 ? 10 : categories.length, // Limit home screen to top 10
                               clipBehavior: Clip.none,
                               itemBuilder: (context, index) {
                                 final cat = categories[index];
+                                final art = CategoryUtils.getArtForCategory(cat.name);
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 16),
                                   child: _buildCategoryItem(
                                     context,
                                     cat.name,
-                                    CategoryUtils.getIconForCategory(cat.name),
+                                    art,
                                     ref,
                                   ),
                                 );
@@ -174,7 +175,7 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ),
                           loading: () => const SizedBox(
-                            height: 90,
+                            height: 100,
                             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                           ),
                           error: (_, __) => const SizedBox.shrink(),
@@ -271,7 +272,7 @@ class HomeScreen extends ConsumerWidget {
 
                   // Recent Jobs List
                   _buildSectionHeader(context, 'Recent Jobs', () => context.go(AppRoutes.jobs)),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   
                   // Map Exploration Button
                   SizedBox(
@@ -395,7 +396,7 @@ class HomeScreen extends ConsumerWidget {
       ],
     );
 
-  Widget _buildCategoryItem(BuildContext context, String name, IconData icon, WidgetRef ref) => ScaleOnTap(
+  Widget _buildCategoryItem(BuildContext context, String name, CategoryArt art, WidgetRef ref) => ScaleOnTap(
       onTap: () {
         ref.read(selectedCategoryProvider.notifier).state = name;
         context.go(AppRoutes.explore);
@@ -403,19 +404,37 @@ class HomeScreen extends ConsumerWidget {
       child: Column(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 68,
+            height: 68,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
+              gradient: LinearGradient(
+                colors: art.gradientColors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: art.gradientStart.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            child: Icon(icon, color: AppColors.primary, size: 28),
+            child: Center(
+              child: Text(art.emoji, style: const TextStyle(fontSize: 28)),
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            name,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          SizedBox(
+            width: 68,
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),

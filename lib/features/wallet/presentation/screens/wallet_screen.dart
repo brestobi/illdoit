@@ -9,6 +9,7 @@ import '../../../../core/models/withdrawal_request.dart';
 import '../../../../core/repositories/transaction_repository_impl.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/payment_service.dart';
+import '../../../../core/services/pin_service.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../providers/wallet_provider.dart';
 import '../providers/pin_provider.dart';
@@ -60,6 +61,16 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_pinGuardPassed) {
+      return Scaffold(
+        backgroundColor: AppColors.darkBg,
+        body: const Center(child: WalkingWorkerLoader(size: 40)),
+      );
+    }
+    return _buildWalletContent(context, ref);
+  }
+
+  Widget _buildWalletContent(BuildContext context, WidgetRef ref) {
     final balanceAsync = ref.watch(balanceProvider);
     final escrowAsync = ref.watch(escrowBalanceProvider);
     final historyAsync = ref.watch(transactionHistoryProvider);
@@ -134,73 +145,33 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Quick Stats
-              Row(
-                children: [
-                  Expanded(
-                    child: ref.watch(withdrawalRequestsProvider).when(
-                      data: (requests) {
-                        final pendingAmount = requests
-                            .where((r) => r.status == 'pending')
-                            .fold(0.0, (sum, r) => sum + r.amount);
-                        return _buildStatBox('Pending', currencyFormat.format(pendingAmount));
-                      },
-                      loading: () => _buildStatBox('Pending', '...'),
-                      error: (_, __) => _buildStatBox('Pending', 'R 0.00'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: escrowAsync.when(
-                      data: (escrow) => _buildStatBox('In Escrow', currencyFormat.format(escrow)),
-                      loading: () => _buildStatBox('In Escrow', '...'),
-                      error: (_, __) => _buildStatBox('In Escrow', 'R 0.00'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Transaction History
-              const Text(
-                'Recent Transactions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 12),
+              const Text('Transaction History', style: TextStyle(fontSize: 18, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 16),
               historyAsync.when(
-                data: (transactions) => transactions.isEmpty
-                    ? const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 32), child: Text('No transactions yet.', style: TextStyle(color: AppColors.textSecondary))))
+                data: (history) => history.isEmpty
+                    ? const Center(child: Text('No transactions yet.', style: TextStyle(color: AppColors.textSecondary)))
                     : ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: transactions.length,
-                        itemBuilder: (context, index) => _buildTransactionItem(transactions[index], currentUserId),
+                        itemCount: history.length,
+                        itemBuilder: (context, index) {
+                          final tx = history[index];
+                          return Card(
+                            color: AppColors.surface,
+                            child: ListTile(
+                              title: Text(tx.type, style: const TextStyle(color: AppColors.textPrimary)),
+                              subtitle: Text(DateFormat('yyyy-MM-dd').format(tx.createdAt), style: const TextStyle(color: AppColors.textSecondary)),
+                              trailing: Text(
+                                (tx.type == 'withdrawal' ? '-' : '+') + currencyFormat.format(tx.amount),
+                                style: TextStyle(color: tx.type == 'withdrawal' ? Colors.red : Colors.green, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                loading: () => const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 40), child: WalkingWorkerLoader(label: 'Fetching history...'))),
-                error: (err, _) => Center(child: Text('Error: $err')),
+                loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
+                error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
               ),
-              const SizedBox(height: 24),
-
-              // Withdrawal Requests
-              const Text(
-                'Withdrawal Requests',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 12),
-              ref.watch(withdrawalRequestsProvider).when(
-                data: (requests) => requests.isEmpty
-                    ? const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Text('No withdrawal requests.', style: TextStyle(color: AppColors.textSecondary))))
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: requests.length,
-                        itemBuilder: (context, index) => _buildWithdrawalItem(requests[index]),
-                      ),
-                loading: () => const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())),
-                error: (err, _) => Center(child: Text('Error: $err')),
-              ),
-              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -208,148 +179,65 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     );
   }
 
-  Widget _buildWithdrawalItem(WithdrawalRequest req) {
-    final currencyFormat = NumberFormat.currency(symbol: 'R ', decimalDigits: 2);
-    final dateStr = DateFormat('MMM dd, yyyy').format(req.createdAt);
-    
-    Color statusColor = AppColors.primary;
-    if (req.status == 'approved' || req.status == 'completed') statusColor = AppColors.success;
-    if (req.status == 'rejected' || req.status == 'failed') statusColor = AppColors.error;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderColor)),
-      child: Row(
-        children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Withdraw to ${req.bankName}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)), const SizedBox(height: 4), Text(dateStr, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text(currencyFormat.format(req.amount), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)), const SizedBox(height: 4), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: Text(req.status.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor)))]),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatBox(String label, String amount) => Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderColor)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          Text(amount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-        ],
-      ),
-    );
-
-  Widget _buildTransactionItem(Transaction tx, String? currentUserId) {
-    final currencyFormat = NumberFormat.currency(symbol: 'R ', decimalDigits: 2);
-    final dateStr = DateFormat('MMM dd, yyyy').format(tx.createdAt);
-    final isIncoming = tx.type == 'deposit' || (tx.type == 'payment' && tx.receiverId == currentUserId) || (tx.type == 'escrow_release' && tx.receiverId == currentUserId);
-
-    IconData icon = Icons.arrow_upward;
-    if (tx.type == 'withdrawal') icon = Icons.account_balance_wallet_outlined;
-    else if (tx.type == 'deposit') icon = Icons.arrow_downward;
-    else if (tx.type == 'escrow') icon = Icons.lock_outline;
-    else icon = isIncoming ? Icons.arrow_downward : Icons.arrow_upward;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderColor)),
-      child: Row(
-        children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(color: tx.type == 'escrow' ? AppColors.primary.withOpacity(0.1) : isIncoming ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 20, color: tx.type == 'escrow' ? AppColors.primary : isIncoming ? AppColors.success : AppColors.error),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(tx.reference ?? 'Transaction', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis), const SizedBox(height: 4), Text(dateStr, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))])),
-          Text(tx.type == 'escrow' ? currencyFormat.format(tx.amount) : '${isIncoming ? '+' : '-'}${currencyFormat.format(tx.amount)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: tx.type == 'escrow' ? AppColors.primary : isIncoming ? AppColors.success : AppColors.error)),
-        ],
-      ),
-    );
-  }
-
   Future<void> _showDepositDialog(BuildContext context) async {
-    final amountController = TextEditingController();
-    String selectedGateway = 'Yoco';
+    final controller = TextEditingController();
+    final paymentService = ref.read(paymentServiceProvider);
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-              backgroundColor: AppColors.surface,
-              title: const Text('Cash In', style: TextStyle(color: AppColors.textPrimary)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(controller: amountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount', prefixText: 'R ')),
-                  const SizedBox(height: 20),
-                  _buildGatewayTile('Yoco', 'Card / Instant EFT', selectedGateway, (val) => setState(() => selectedGateway = val!)),
-                  _buildGatewayTile('Ozow', 'Instant EFT', selectedGateway, (val) => setState(() => selectedGateway = val!)),
-                  _buildGatewayTile('PayFast', 'Card / EFT', selectedGateway, (val) => setState(() => selectedGateway = val!)),
-                ],
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cash In')),
-              ],
-            )
-        ),
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Cash In', style: TextStyle(color: AppColors.textPrimary)),
+        content: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount (R)', prefixText: 'R ')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+        ],
+      ),
     );
     if (confirmed != true) return;
-    
-    final amount = double.tryParse(amountController.text.replaceAll(',', '.')) ?? 0.0;
-    if (amount < 10) { 
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minimum deposit is R 10.'))); 
-        return; 
-    }
-    
+    final amount = double.tryParse(controller.text) ?? 0.0;
+    if (amount < 10) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Minimum deposit is R 10.'))); return; }
     try {
-      if (selectedGateway == 'Yoco') {
-        final paymentService = ref.read(paymentServiceProvider);
-        
-        final paymentData = await paymentService.createYocoCheckout(
-            amount: amount, 
-            currency: 'ZAR', 
-            reference: 'cash_in_${DateTime.now().millisecondsSinceEpoch}'
-        );
-        debugPrint('Yoco payment data: $paymentData');
-        
-        final checkoutUrl = paymentData['checkout_url'] as String;
-        final paymentId = paymentData['payment_id'] as String;
-        debugPrint('Navigating to Yoco payment: $checkoutUrl');
-        
-        final success = await context.push<bool>(
-            AppRoutes.yocoPayment, 
-            extra: {'checkoutUrl': checkoutUrl, 'callbackUrl': 'https://illdoit.space/payment-success'}
-        );
-        debugPrint('Yoco payment returned: $success');
-        
-        if (success == true) {
-            final verified = await paymentService.verifyPayment(paymentId);
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(verified ? 'Success!' : 'Status pending.')));
-        }
-      } else {
-        await ref.read(transactionRepositoryProvider).depositFunds(amount: amount, reference: 'Cash In', gateway: selectedGateway);
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Funds added successfully!')));
-      }
+      final paymentId = DateTime.now().millisecondsSinceEpoch.toString();
+      final reference = 'DEPOSIT-$paymentId';
+      final checkoutUrl = await paymentService.createCheckoutSession(amount: amount, reference: reference);
+      
+      // Create the pending transaction BEFORE opening the payment page.
+      await ref.read(transactionRepositoryProvider).depositFunds(
+        amount: amount,
+        reference: reference,
+        paymentId: paymentId,
+      );
+      
       ref.invalidate(balanceProvider);
       ref.invalidate(transactionHistoryProvider);
+      
+      debugPrint('Navigating to Yoco payment: $checkoutUrl');
+      
+      final success = await context.push<bool>(
+          AppRoutes.yocoPayment, 
+          extra: {'checkoutUrl': checkoutUrl, 'callbackUrl': 'https://illdoit.space/payment-success'},
+      );
+      debugPrint('Yoco payment returned: $success');
+      
+      if (success == true) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment submitted. Confirming with Yoco...')),
+          );
+          final verified = await paymentService.verifyPayment(paymentId);
+          if (!context.mounted) return;
+          ref.invalidate(balanceProvider);
+          ref.invalidate(transactionHistoryProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(verified ? 'Deposit confirmed!' : 'Payment processing. It may take a few minutes to appear in your balance.')),
+          );
+      }
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
     }
   }
-
-  Widget _buildGatewayTile(String name, String sub, String selected, ValueChanged<String?> onChanged) => RadioListTile<String>(
-      title: Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-      subtitle: Text(sub, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-      value: name, groupValue: selected, onChanged: onChanged, activeColor: AppColors.primary, contentPadding: EdgeInsets.zero,
-  );
 
   Future<void> _showWithdrawDialog(BuildContext context) async {
     final amountController = TextEditingController();
@@ -359,34 +247,32 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     String selectedBank = 'Absa';
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-              backgroundColor: AppColors.surface,
-              title: const Text('Withdrawal Request', style: TextStyle(color: AppColors.textPrimary)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(controller: amountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount (R)', prefixText: 'R ')),
-                    DropdownButtonFormField<String>(
-                      value: selectedBank,
-                      dropdownColor: AppColors.surface,
-                      decoration: const InputDecoration(labelText: 'Bank'),
-                      items: ['Absa', 'Capitec', 'FNB', 'Nedbank', 'Standard Bank', 'TymeBank', 'Discovery Bank'].map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                      onChanged: (val) => setState(() => selectedBank = val!),
-                    ),
-                    TextField(controller: accController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Account Number')),
-                    TextField(controller: branchController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Branch Code')),
-                    TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Account Holder Name')),
-                  ],
-                ),
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Withdrawal Request', style: TextStyle(color: AppColors.textPrimary)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: amountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount (R)', prefixText: 'R ')),
+              DropdownButtonFormField<String>(
+                value: selectedBank,
+                dropdownColor: AppColors.surface,
+                decoration: const InputDecoration(labelText: 'Bank'),
+                items: ['Absa', 'Capitec', 'FNB', 'Nedbank', 'Standard Bank', 'TymeBank', 'Discovery Bank'].map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                onChanged: (val) => selectedBank = val!,
               ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Submit Request')),
-              ],
-            )
+              TextField(controller: accController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Account Number')),
+              TextField(controller: branchController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Branch Code')),
+              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Account Holder Name')),
+            ],
+          ),
         ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Submit Request')),
+        ],
+      ),
     );
     if (confirmed != true) return;
     final amount = double.tryParse(amountController.text) ?? 0.0;

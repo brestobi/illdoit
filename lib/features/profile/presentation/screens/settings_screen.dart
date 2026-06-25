@@ -157,8 +157,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ]),
 
               const SizedBox(height: 24),
-              _buildSectionHeader('Support'),
+              _buildSectionHeader('Support & Safety'),
               _buildSettingCard([
+                _buildActionTile(
+                  icon: Icons.shield_rounded,
+                  title: 'Safety Tips',
+                  trailing: null,
+                  onTap: () => context.push(AppRoutes.safetyTips),
+                ),
+                Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.help_outline,
                   title: 'Help Center',
