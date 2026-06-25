@@ -9,6 +9,7 @@ import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
+import 'core/widgets/suspension_banner.dart';
 import 'firebase_options.dart';
 
 // Background message handler
@@ -75,6 +76,14 @@ class _IllDoItAppState extends ConsumerState<IllDoItApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            const SuspensionBanner(),
+          ],
+        );
+      },
     );
   }
 }

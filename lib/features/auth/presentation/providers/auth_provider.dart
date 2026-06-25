@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../../../core/services/supabase_service.dart';
@@ -40,7 +41,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   AuthNotifier(this._supabaseService, this._ref) : super(AuthState(user: _supabaseService.currentUser)) {
     // Listen to auth state changes
-    _supabaseService.authStateChanges.listen((event) async {
+    _authSubscription = _supabaseService.authStateChanges.listen((event) async {
       final user = event.session?.user;
       state = state.copyWith(user: user, isLoading: false);
       
@@ -52,9 +53,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await _checkSuspension();
       }
     });
+
+    // Start periodic suspension polling when authenticated
+    _startSuspensionPolling();
   }
   final SupabaseService _supabaseService;
   final Ref _ref;
+  StreamSubscription<supabase.AuthState>? _authSubscription;
+  Timer? _suspensionTimer;
 
   /// Check if the current user's account is suspended or banned.
   /// If so, sign them out and set a suspension message.
@@ -87,6 +93,66 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (_) {
       // Silently fail — don't block the user on a check error
     }
+  }
+
+  /// Poll for suspension status every 30 seconds while the user is browsing.
+  /// Unlike [_checkSuspension], this does NOT sign the user out — it only
+  /// updates [suspensionMessage] so the in-app [SuspensionBanner] appears.
+  Future<void> _pollSuspensionStatus() async {
+    final currentUser = _supabaseService.currentUser;
+    if (currentUser == null) {
+      // If signed out, clear any stale suspension message
+      if (state.suspensionMessage != null) {
+        state = state.copyWith(suspensionMessage: null);
+      }
+      return;
+    }
+
+    try {
+      final data = await _supabaseService.query(
+        table: 'users',
+        filters: {'id': currentUser.id},
+      );
+
+      if (data.isEmpty) return;
+
+      final accountStatus = data.first['account_status'] as String? ?? 'active';
+      final suspensionReason = data.first['suspension_reason'] as String?;
+
+      if (accountStatus == 'suspended' || accountStatus == 'banned') {
+        final message = accountStatus == 'suspended'
+            ? 'Your account has been suspended.\nReason: ${suspensionReason ?? "No reason provided"}\n\nPlease contact support for assistance.'
+            : 'Your account has been permanently banned.\nReason: ${suspensionReason ?? "No reason provided"}\n\nThis action cannot be reversed.';
+
+        // Set suspension message without signing out — the in-app banner handles the UI
+        if (state.suspensionMessage != message) {
+          state = state.copyWith(suspensionMessage: message);
+        }
+      } else {
+        // Account is active — clear any stale suspension message
+        if (state.suspensionMessage != null) {
+          state = state.copyWith(suspensionMessage: null);
+        }
+      }
+    } catch (_) {
+      // Silently fail on polling errors
+    }
+  }
+
+  /// Start a periodic timer to poll suspension status every 30 seconds.
+  void _startSuspensionPolling() {
+    _suspensionTimer?.cancel();
+    _suspensionTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _pollSuspensionStatus(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _suspensionTimer?.cancel();
+    _authSubscription?.cancel();
+    super.dispose();
   }
 
   /// Sign up with email and password

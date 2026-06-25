@@ -11,12 +11,55 @@ import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/payment_service.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../providers/wallet_provider.dart';
+import '../providers/pin_provider.dart';
+import 'pin_screen.dart';
 
-class WalletScreen extends ConsumerWidget {
+class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends ConsumerState<WalletScreen> {
+  bool _pinGuardPassed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPin());
+  }
+
+  Future<void> _checkPin() async {
+    if (_pinGuardPassed) return;
+
+    await ref.read(pinProvider.notifier).checkPinStatus();
+    if (!mounted) return;
+
+    final pinStatus = ref.read(pinProvider);
+    if (pinStatus == PinStatus.unlocked) {
+      setState(() => _pinGuardPassed = true);
+      return;
+    }
+
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PinScreen(),
+        fullscreenDialog: true,
+      ),
+    );
+
+    if (result == true && mounted) {
+      setState(() => _pinGuardPassed = true);
+    } else if (mounted) {
+      // User cancelled — go back
+      context.pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final balanceAsync = ref.watch(balanceProvider);
     final escrowAsync = ref.watch(escrowBalanceProvider);
     final historyAsync = ref.watch(transactionHistoryProvider);
@@ -72,7 +115,7 @@ class WalletScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _showWithdrawDialog(context, ref),
+                            onPressed: () => _showWithdrawDialog(context),
                             style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkBg),
                             child: const Text('Withdraw', style: TextStyle(color: AppColors.primary)),
                           ),
@@ -80,7 +123,7 @@ class WalletScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => _showDepositDialog(context, ref),
+                            onPressed: () => _showDepositDialog(context),
                             style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkBg),
                             child: const Text('Cash In', style: TextStyle(color: AppColors.primary)),
                           ),
@@ -229,7 +272,7 @@ class WalletScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDepositDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showDepositDialog(BuildContext context) async {
     final amountController = TextEditingController();
     String selectedGateway = 'Yoco';
     final confirmed = await showDialog<bool>(
@@ -308,7 +351,7 @@ class WalletScreen extends ConsumerWidget {
       value: name, groupValue: selected, onChanged: onChanged, activeColor: AppColors.primary, contentPadding: EdgeInsets.zero,
   );
 
-  Future<void> _showWithdrawDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showWithdrawDialog(BuildContext context) async {
     final amountController = TextEditingController();
     final nameController = TextEditingController();
     final accController = TextEditingController();
