@@ -18,8 +18,10 @@ final recentJobsProvider = FutureProvider<List<Job>>((ref) async {
   return jobRepository.getJobs(status: 'open');
 });
 
-/// Provider for recommended workers (job seekers with highest rating)
+/// Provider for recommended workers (job seekers sorted by rating, highest first)
 final recommendedWorkersProvider = FutureProvider<List<User>>((ref) async {
   final userRepository = ref.watch(userRepositoryProvider);
-  return userRepository.getUsers(userType: 'job_seeker', limit: 5);
+  final workers = await userRepository.getUsers(userType: 'job_seeker');
+  workers.sort((a, b) => b.rating.compareTo(a.rating));
+  return workers.take(5).toList();
 });

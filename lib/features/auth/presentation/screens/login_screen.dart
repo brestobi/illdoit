@@ -115,8 +115,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     delay: const Duration(milliseconds: 200),
                     child: SvgPicture.asset(
                       'assets/icons/logo.svg',
-                      height: 80,
-                      width: 80,
+                      height: 100,
+                      width: 100,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -289,24 +289,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             onTap: isLoading ? null : _handleEmailOtp,
                             child: _SocialButton(
                               icon: Icons.email_outlined,
-                              label: 'Email',
+                              label: 'OTP',
                               onPressed: isLoading ? null : _handleEmailOtp,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ScaleOnTap(
-                            onTap: isLoading ? null : () => context.push(AppRoutes.phoneLogin),
-                            child: _SocialButton(
-                              icon: Icons.phone_android_rounded,
-                              label: 'Phone',
-                              onPressed: isLoading
-                                  ? null
-                                  : () => context.push(AppRoutes.phoneLogin),
-                            ),
-                          ),
-                        ),
+                        // Phone login disabled
+                        // const SizedBox(width: 8),
+                        // Expanded(
+                        //   child: ScaleOnTap(
+                        //     onTap: isLoading ? null : () => context.push(AppRoutes.phoneLogin),
+                        //     child: _SocialButton(
+                        //       icon: Icons.phone_android_rounded,
+                        //       label: 'Phone',
+                        //       onPressed: isLoading
+                        //           ? null
+                        //           : () => context.push(AppRoutes.phoneLogin),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

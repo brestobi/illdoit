@@ -314,7 +314,7 @@ class _OrderTile extends ConsumerWidget {
         border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
-        status.name.toUpperCase(),
+        status.dbValue.replaceAll('_', ' ').toUpperCase(),
         style: TextStyle(
           color: color,
           fontSize: 10,

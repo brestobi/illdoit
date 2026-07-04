@@ -1,9 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 
@@ -21,9 +21,67 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     _handleNavigation();
   }
 
+  Future<bool> _hasInternet() async {
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 5));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    } on TimeoutException catch (_) {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        icon: const Icon(Icons.wifi_off_rounded, size: 48, color: AppColors.error),
+        title: const Text(
+          'No Internet',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Please check your connection and try again.',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              _handleNavigation();
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleNavigation() async {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
+
+    // Check internet connectivity first
+    final online = await _hasInternet();
+    if (!mounted) return;
+
+    if (!online) {
+      _showNoInternetDialog();
+      return;
+    }
 
     final authState = ref.read(authProvider);
     final isAuthenticated = authState.isAuthenticated;
@@ -106,66 +164,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.darkBg,
-      body: Stack(
-        fit: StackFit.expand,
+      backgroundColor: Colors.white,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Splash Image
-          Image.asset(
-            'assets/images/splash.png',
-            fit: BoxFit.cover,
-          ),
-          // Gradient overlay for better text readability if needed
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.3),
-                  Colors.black.withOpacity(0.7),
-                ],
-              ),
+          const Spacer(),
+          // Splash image
+          Center(
+            child: Image.asset(
+              'assets/images/splash.png',
+              width: 220,
+              fit: BoxFit.contain,
             ),
           ),
-          // Content
-          const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Spacer(flex: 3),
-                // Logo/App Icon
-                AppLogo(size: 120),
-                SizedBox(height: 24),
-                // App Title
-                Text(
-                  'I\'ll Do It',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -1,
-                  ),
-                ),
-                SizedBox(height: 8),
-                // Tagline
-                Text(
-                  'South Africa\'s Work & Hustle Platform',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                Spacer(flex: 2),
-                // Loading Indicator
-                WalkingWorkerLoader(
-                  label: 'Preparing your hustle...',
-                  color: Colors.white,
-                ),
-                SizedBox(height: 48),
-              ],
+          const Spacer(),
+          // Loader at the bottom
+          const Padding(
+            padding: EdgeInsets.only(bottom: 48),
+            child: WalkingWorkerLoader(
+              label: 'Preparing your hustle...',
+              color: AppColors.textPrimary,
             ),
           ),
         ],

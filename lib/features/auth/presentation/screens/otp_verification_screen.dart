@@ -20,23 +20,50 @@ class OtpVerificationScreen extends ConsumerStatefulWidget {
 }
 
 class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
-  late TextEditingController _otpController;
-
-  @override
-  void initState() {
-    super.initState();
-    _otpController = TextEditingController();
-  }
+  static const int _boxCount = 8;
+  final List<TextEditingController> _controllers = List.generate(_boxCount, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(_boxCount, (_) => FocusNode());
+  final List<FocusNode> _keyListeners = List.generate(_boxCount, (_) => FocusNode());
 
   @override
   void dispose() {
-    _otpController.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
+    for (final f in _keyListeners) {
+      f.dispose();
+    }
     super.dispose();
   }
 
+  String get _otp => _controllers.map((c) => c.text).join();
+
+  void _onChanged(int index, String value) {
+    if (value.length == 1) {
+      // Auto-advance to next box
+      if (index < _boxCount - 1) {
+        _focusNodes[index + 1].requestFocus();
+      } else {
+        _focusNodes[index].unfocus();
+      }
+    }
+  }
+
+  void _onKeyEvent(int index, RawKeyEvent event) {
+    if (event is RawKeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace &&
+        _controllers[index].text.isEmpty &&
+        index > 0) {
+      _focusNodes[index - 1].requestFocus();
+    }
+  }
+
   Future<void> _handleVerifyOtp() async {
-    final otp = _otpController.text.trim();
-    if (otp.isEmpty || otp.length < 6) {
+    final otp = _otp;
+    if (otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid 6 to 8 digit code')),
       );
@@ -116,33 +143,43 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               ),
               const SizedBox(height: 40),
 
-              // OTP Field
-              TextField(
-                controller: _otpController,
-                keyboardType: TextInputType.number,
-                enabled: !isLoading,
-                maxLength: 8,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 32,
-                  letterSpacing: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-                decoration: InputDecoration(
-                  hintText: '000000',
-                  counterText: '',
-                  hintStyle: TextStyle(
-                    color: AppColors.textTertiary.withOpacity(0.3),
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 24),
-                ),
+              // OTP Input Boxes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(_boxCount, (index) {
+                  return SizedBox(
+                    width: 40,
+                    height: 56,
+                    child: RawKeyboardListener(
+                      focusNode: _keyListeners[index],
+                      onKey: (event) => _onKeyEvent(index, event),
+                      child: TextField(
+                        controller: _controllers[index],
+                        focusNode: _focusNodes[index],
+                        keyboardType: TextInputType.number,
+                        enabled: !isLoading,
+                        maxLength: 1,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          filled: true,
+                          fillColor: AppColors.surface,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: (value) => _onChanged(index, value),
+                      ),
+                    ),
+                  );
+                }),
               ),
               const SizedBox(height: 40),
 

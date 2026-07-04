@@ -117,7 +117,7 @@ class OrderRepositoryImpl implements OrderRepository {
     try {
       await _supabaseService.client
           .from('orders')
-          .update({'status': status.name, 'updated_at': DateTime.now().toIso8601String()})
+          .update({'status': status.dbValue, 'updated_at': DateTime.now().toIso8601String()})
           .eq('id', orderId);
 
       // Handle escrow release/refund

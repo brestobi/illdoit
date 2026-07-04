@@ -10,7 +10,6 @@ import '../../../../core/models/user.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/repositories/category_repository.dart';
 import '../../../../core/utils/category_utils.dart';
-import '../../../../core/widgets/app_logo.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../core/widgets/walking_worker_loader.dart';
 import '../../../../core/widgets/app_animations.dart';
@@ -46,21 +45,18 @@ class HomeScreen extends ConsumerWidget {
           slivers: [
             // Custom App Bar
             SliverAppBar(
-              floating: true,
-              pinned: false,
-              snap: true,
+              pinned: true,
+              floating: false,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               elevation: 0,
               centerTitle: false,
-              leading: const Padding(
-                padding: EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                child: AppLogo(size: 28),
-              ),
-              title: Text(
-                'Illdoit Space',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              title: const Text(
+                'ILLDOIT SPACE',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: -1,
+                  letterSpacing: 1.5,
                 ),
               ),
               actions: [
@@ -396,7 +392,9 @@ class HomeScreen extends ConsumerWidget {
       ],
     );
 
-  Widget _buildCategoryItem(BuildContext context, String name, CategoryArt art, WidgetRef ref) => ScaleOnTap(
+  Widget _buildCategoryItem(BuildContext context, String name, CategoryArt art, WidgetRef ref) {
+    final icon = CategoryUtils.getIconForCategory(name);
+    return ScaleOnTap(
       onTap: () {
         ref.read(selectedCategoryProvider.notifier).state = name;
         context.go(AppRoutes.explore);
@@ -422,7 +420,7 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             child: Center(
-              child: Text(art.emoji, style: const TextStyle(fontSize: 28)),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
           ),
           const SizedBox(height: 8),
@@ -439,6 +437,7 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
 
   Widget _buildServiceCarouselCard(BuildContext context, Service service) => ScaleOnTap(
       onTap: () => context.push(AppRoutes.serviceDetail.replaceFirst(':id', service.id)),
@@ -504,7 +503,6 @@ class HomeScreen extends ConsumerWidget {
       onTap: () => context.push(AppRoutes.jobDetail.replaceFirst(':id', job.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
@@ -512,28 +510,57 @@ class HomeScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(job.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Budget: R${job.budget.toStringAsFixed(0)} • ${job.category}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
+            // Job image
+            ClipRRect(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(15)),
+              child: SizedBox(
+                width: 80,
+                height: 80,
+                child: job.images.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: job.images.first,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(color: AppColors.primary.withValues(alpha: 0.1)),
+                        errorWidget: (_, __, ___) => Container(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          child: const Icon(Icons.work_outline, color: AppColors.textTertiary),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        child: const Icon(Icons.work_outline, color: AppColors.textTertiary),
+                      ),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'Bid',
-                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(job.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Budget: R${job.budget.toStringAsFixed(0)} • ${job.category}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'Bid',
+                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

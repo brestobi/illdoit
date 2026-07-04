@@ -141,13 +141,19 @@ class SupabaseService {
     }
   }
 
-  /// Update user profile
+  /// Update user profile (metadata and/or password)
   Future<void> updateUserProfile({
     required Map<String, dynamic> data,
   }) async {
     try {
+      // Extract password — must be passed directly to UserAttributes,
+      // NOT inside `data` (which sets user_metadata, not the auth credential).
+      final password = data.remove('password') as String?;
       await client.auth.updateUser(
-        UserAttributes(data: data),
+        UserAttributes(
+          password: password,
+          data: data.isNotEmpty ? data : null,
+        ),
       );
     } on AuthException catch (e) {
       throw AuthenticationException(e.message);

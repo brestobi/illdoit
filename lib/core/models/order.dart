@@ -10,7 +10,10 @@ enum OrderStatus {
   inProgress,
   completed,
   cancelled,
-  disputed
+  disputed;
+
+  /// Returns the JSON/DB string value for this status
+  String get dbValue => _$OrderStatusEnumMap[this]!;
 }
 
 @freezed

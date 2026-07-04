@@ -1,6 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/validators.dart';
@@ -41,6 +43,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
+  Future<void> _launchTerms() async {
+    final Uri url = Uri.parse('https://illdoit.space/tncs');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch terms and conditions')),
+        );
+      }
+    }
+  }
+
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
       if (!_agreeToTerms) {
@@ -55,6 +68,50 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             password: _passwordController.text.trim(),
             fullName: _nameController.text.trim(),
           );
+
+      if (!mounted) return;
+
+      // Check for signup errors
+      final error = ref.read(authProvider).errorMessage;
+      if (error != null) return; // error snackbar already shown by listener
+
+      // Show success dialog
+      final shouldGoToLogin = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          icon: const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 56),
+          title: const Text(
+            'Account Created!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          content: const Text(
+            'Your account has been created successfully. You can now sign in.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Sign In', style: TextStyle(fontSize: 16)),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (shouldGoToLogin == true) {
+        await ref.read(authProvider.notifier).signOut();
+        if (mounted) context.go(AppRoutes.login);
+      }
     }
   }
 
@@ -63,7 +120,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final authState = ref.watch(authProvider);
     final isLoading = authState.isLoading;
 
-    // Listen for errors or success
+    // Listen for errors
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -73,13 +130,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           ),
         );
         ref.read(authProvider.notifier).clearError();
-      } else if (previous?.isLoading == true && next.isLoading == false && next.isAuthenticated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
       }
     });
 
@@ -232,14 +282,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           text: TextSpan(
                             text: 'I agree to the ',
                             style: Theme.of(context).textTheme.bodySmall,
-                            children: const [
+                            children: [
                               TextSpan(
                                 text: 'Terms & Conditions',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w700,
                                   decoration: TextDecoration.underline,
                                 ),
+                                recognizer: TapGestureRecognizer()..onTap = _launchTerms,
                               ),
                             ],
                           ),

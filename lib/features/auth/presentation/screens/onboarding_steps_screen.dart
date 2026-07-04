@@ -27,6 +27,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   List<String> _selectedSkills = [];
+  bool _isAccountVisible = true;
 
   @override
   void initState() {
@@ -92,6 +93,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
         'phone': _phoneController.text,
         'skills': _selectedSkills,
         'is_onboarding_completed': true,
+        'is_profile_public': _isAccountVisible,
         'updated_at': DateTime.now().toIso8601String(),
       });
       
@@ -219,7 +221,7 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'How do you want to use I\'ll Do It?',
+            'How do you want to use illdoit spaces?',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -414,7 +416,16 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
     );
   }
 
-  Widget _buildBasicInfoStep(AsyncValue<List<AppLocation>> locationsAsync) => SingleChildScrollView(
+  Widget _buildBasicInfoStep(AsyncValue<List<AppLocation>> locationsAsync) {
+    const bioSuggestions = [
+      'I am a skilled professional with experience in...',
+      'I specialize in digital services including...',
+      'I offer physical/on-site services such as...',
+      'I\'m looking for opportunities in...',
+      'I have X years of experience in...',
+    ];
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,21 +444,26 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
             style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 32),
+
+          // Phone Number with +27 prefix
           TextField(
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
               labelText: 'Phone Number',
-              hintText: 'e.g. +27 12 345 6789',
+              hintText: '12 345 6789',
+              prefixText: '+27 ',
               prefixIcon: Icon(Icons.phone_outlined),
             ),
           ),
           const SizedBox(height: 20),
+
+          // Location
           locationsAsync.when(
             data: (locations) => DropdownButtonFormField<String>(
-              value: _locationController.text.isNotEmpty && 
+              value: _locationController.text.isNotEmpty &&
                      locations.any((l) => '${l.name}, ${l.province}' == _locationController.text)
-                  ? _locationController.text 
+                  ? _locationController.text
                   : null,
               decoration: const InputDecoration(
                 labelText: 'Location',
@@ -476,6 +492,8 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
             ),
           ),
           const SizedBox(height: 20),
+
+          // Bio
           TextField(
             controller: _bioController,
             maxLines: 4,
@@ -485,9 +503,93 @@ class _OnboardingStepsScreenState extends ConsumerState<OnboardingStepsScreen> {
               alignLabelWithHint: true,
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Bio suggestions
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: bioSuggestions.map((suggestion) {
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (_bioController.text.isEmpty) {
+                      _bioController.text = suggestion;
+                    } else {
+                      _bioController.text = '${_bioController.text} $suggestion';
+                    }
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
+                  ),
+                  child: Text(
+                    suggestion,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+
+          // Account Visibility
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderColor.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_outlined, color: AppColors.textSecondary, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Account Visibility',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        _isAccountVisible
+                            ? 'Your profile is visible to other users'
+                            : 'Your profile is hidden from other users',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _isAccountVisible,
+                  activeColor: AppColors.primary,
+                  onChanged: (value) => setState(() => _isAccountVisible = value),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
+  }
 
   Widget _buildSkillsStep(AsyncValue<List<String>> skillsAsync) => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),

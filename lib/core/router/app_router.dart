@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/phone_login_screen.dart';
+// import '../../features/auth/presentation/screens/phone_login_screen.dart'; // disabled
 import '../../features/auth/presentation/screens/recovery_password_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -30,7 +30,7 @@ import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/providers/profile_provider.dart';
 
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
-import '../../features/auth/presentation/screens/phone_login_screen.dart';
+// import '../../features/auth/presentation/screens/phone_login_screen.dart'; // disabled
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/onboarding_steps_screen.dart';
 
@@ -117,7 +117,8 @@ class RouterNotifier extends ChangeNotifier {
 
     if (isAuthenticated) {
       // If authenticated but on auth screens, go home
-      if (isLoggingIn || isSigningUp || isForgotPassword || isPhoneLogin || isOtpVerify || isSplash) {
+      // (Signup handles its own post-success flow: dialog → signout → login)
+      if (isLoggingIn || isForgotPassword || isPhoneLogin || isOtpVerify || isSplash) {
         return AppRoutes.home;
       }
 
@@ -176,10 +177,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.recoveryPassword,
         builder: (context, state) => RecoveryPasswordScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.phoneLogin,
-        builder: (context, state) => PhoneLoginScreen(),
-      ),
+      // Phone login disabled
+      // GoRoute(
+      //   path: AppRoutes.phoneLogin,
+      //   builder: (context, state) => PhoneLoginScreen(),
+      // ),
       GoRoute(
         path: AppRoutes.otpVerify,
         builder: (context, state) {

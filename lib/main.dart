@@ -70,7 +70,7 @@ class _IllDoItAppState extends ConsumerState<IllDoItApp> {
     final themeMode = ref.watch(themeNotifierProvider);
 
     return MaterialApp.router(
-      title: "I'll Do It",
+      title: "illdoit spaces",
       debugShowCheckedModeBanner: false,
       routerConfig: goRouter,
       theme: AppTheme.lightTheme,
