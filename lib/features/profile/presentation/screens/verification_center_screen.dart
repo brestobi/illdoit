@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/supabase_service.dart';
 import '../providers/profile_provider.dart';
 
 class VerificationCenterScreen extends ConsumerWidget {
@@ -11,6 +12,7 @@ class VerificationCenterScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(profileProvider);
+    final authUser = ref.watch(supabaseServiceProvider).currentUser;
 
     return Scaffold(
       backgroundColor: AppColors.darkBg,
@@ -131,8 +133,10 @@ class VerificationCenterScreen extends ConsumerWidget {
                 // Level 1: Phone & Email (Assumed done if they are here)
                 _buildVerificationStep(
                   title: 'Contact Verification',
-                  subtitle: 'Email and Phone Number',
-                  isCompleted: true, // Always true if they can access profile?
+                  subtitle: authUser?.phone != null
+                      ? 'Email & Phone verified'
+                      : 'Email verified',
+                  isCompleted: true, // Auth user always has verified email to be here
                   icon: Icons.contact_phone_outlined,
                 ),
 
@@ -180,7 +184,16 @@ class VerificationCenterScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textTertiary),
+              SizedBox(height: 12),
+              Text('Could not load verification status', style: TextStyle(color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/job.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../providers/jobs_provider.dart';
@@ -111,7 +112,9 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: $err', style: TextStyle(color: theme.colorScheme.error)),
+                      const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textTertiary),
+                      const SizedBox(height: 12),
+                      const Text('Could not load jobs', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => ref.refresh(jobsByStatusProvider(_status)),

@@ -66,9 +66,33 @@ class JobRepositoryImpl implements JobRepository {
     }
   }
 
+  /// Delete all open jobs whose deadline has passed.
+  Future<int> cleanupExpiredJobs() async {
+    try {
+      final now = DateTime.now().toIso8601String();
+      // Fetch expired open jobs
+      final expired = await _supabaseService.client
+          .from('jobs')
+          .select('id')
+          .eq('status', 'open')
+          .lt('deadline', now);
+      final ids = (expired as List).map((e) => (e as Map)['id'] as String).toList();
+      // Delete each expired job (cascades to applications)
+      for (final id in ids) {
+        await _supabaseService.delete(table: 'jobs', id: id);
+      }
+      return ids.length;
+    } catch (_) {
+      return 0; // Non-critical — don't block fetching
+    }
+  }
+
   @override
   Future<List<Job>> getJobs({String? status, String? category, String? location}) async {
     try {
+      // Cleanup expired open jobs before fetching
+      await cleanupExpiredJobs();
+
       if (status == 'applied') {
         final currentUser = _supabaseService.currentUser;
         if (currentUser == null) throw AuthenticationException('No user logged in');
@@ -83,10 +107,10 @@ class JobRepositoryImpl implements JobRepository {
         
         final jobIds = applications.map((app) => app['job_id'] as String).toList();
         
-        // Fetch jobs
+        // Fetch jobs (exclude completed — those go in the completed tab)
         final results = await _supabaseService.query(
           table: 'jobs',
-          filters: {'id': jobIds},
+          filters: {'id': jobIds, 'status': ['open', 'in_progress']},
         );
         return results.map(Job.fromJson).toList();
       }
@@ -95,11 +119,27 @@ class JobRepositoryImpl implements JobRepository {
       if (status != null) filters['status'] = status;
       if (category != null) filters['category'] = category;
       if (location != null) filters['location'] = location;
-      
-      final results = await _supabaseService.query(
-        table: 'jobs',
-        filters: filters.isNotEmpty ? filters : null,
-      );
+
+      // For open jobs, also filter out expired ones at query level
+      var results = await _supabaseService.client
+          .from('jobs')
+          .select();
+
+      filters.forEach((key, value) {
+        if (value is List) {
+          results = results.filter(key, 'in', value);
+        } else {
+          results = results.eq(key, value);
+        }
+      });
+
+      // Exclude open jobs past deadline
+      if (status == 'open') {
+        results = results.gte('deadline', DateTime.now().toIso8601String());
+      }
+
+      final data = await results;
+      return (data as List).map((e) => Job.fromJson(Map<String, dynamic>.from(e as Map))).toList();
       return results.map(Job.fromJson).toList();
     } catch (e) {
       throw ServerException('Failed to fetch jobs: $e');
@@ -144,10 +184,25 @@ class JobRepositoryImpl implements JobRepository {
   @override
   Future<void> deleteJob({required String jobId}) async {
     try {
-      await _supabaseService.delete(
-        table: 'jobs',
-        id: jobId,
+      // Clean up related records first (applications, milestones)
+      final apps = await _supabaseService.query(
+        table: 'job_applications',
+        filters: {'job_id': jobId},
       );
+      for (final app in apps) {
+        await _supabaseService.delete(table: 'job_applications', id: app['id'] as String);
+      }
+
+      final milestones = await _supabaseService.query(
+        table: 'job_milestones',
+        filters: {'job_id': jobId},
+      );
+      for (final m in milestones) {
+        await _supabaseService.delete(table: 'job_milestones', id: m['id'] as String);
+      }
+
+      // Delete the job itself
+      await _supabaseService.delete(table: 'jobs', id: jobId);
     } catch (e) {
       throw ServerException('Failed to delete job: $e');
     }
@@ -256,17 +311,51 @@ class JobRepositoryImpl implements JobRepository {
   }) async {
     try {
       if (status == ApplicationStatus.accepted) {
-        // Use atomic RPC for hiring process
+        // 1. Get the application to find the job_id
+        final apps = await _supabaseService.query(
+          table: 'job_applications',
+          filters: {'id': applicationId},
+        );
+        if (apps.isEmpty) throw ServerException('Application not found');
+        final jobId = apps.first['job_id'] as String;
+
+        // 2. Use atomic RPC for hiring process
         await _supabaseService.client.rpc(
           'accept_job_escrow',
           params: {'p_application_id': applicationId},
         );
+
+        // 3. Lock the job: set to in_progress (prevents new applications)
+        await _supabaseService.update(
+          table: 'jobs',
+          id: jobId,
+          data: {
+            'status': 'in_progress',
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+        );
+
+        // 4. Reject all other pending applications for this job
+        final otherApps = await _supabaseService.query(
+          table: 'job_applications',
+          filters: {'job_id': jobId, 'status': 'pending'},
+        );
+        for (final app in otherApps) {
+          await _supabaseService.update(
+            table: 'job_applications',
+            id: app['id'] as String,
+            data: {
+              'status': 'rejected',
+              'updated_at': DateTime.now().toIso8601String(),
+            },
+          );
+        }
       } else {
         // Just update application status
         await _supabaseService.client
             .from('job_applications')
             .update({
-              'status': status.name, 
+              'status': status.name,
               'updated_at': DateTime.now().toIso8601String()
             })
             .eq('id', applicationId);

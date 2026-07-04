@@ -119,7 +119,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                         height: 44,
                         child: Center(child: WalkingWorkerLoader(size: 30, color: AppColors.darkBg)),
                       ),
-                      error: (err, _) => const Text('R 0.00', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.darkBg)),
+                      error: (err, _) => const Text('R --.--', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.darkBg)),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -170,7 +170,16 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                         },
                       ),
                 loading: () => const Center(child: WalkingWorkerLoader(size: 30)),
-                error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+                error: (err, _) => const Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.error_outline_rounded, size: 36, color: AppColors.textTertiary),
+      SizedBox(height: 8),
+      Text('Could not load history', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+    ],
+  ),
+),
               ),
             ],
           ),
@@ -236,7 +245,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       }
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Deposit failed. Please try again.')));
     }
   }
 
@@ -248,31 +257,39 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     String selectedBank = 'Absa';
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Withdrawal Request', style: TextStyle(color: AppColors.textPrimary)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: amountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount (R)', prefixText: 'R ')),
-              DropdownButtonFormField<String>(
-                value: selectedBank,
-                dropdownColor: AppColors.surface,
-                decoration: const InputDecoration(labelText: 'Bank'),
-                items: ['Absa', 'Capitec', 'FNB', 'Nedbank', 'Standard Bank', 'TymeBank', 'Discovery Bank'].map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                onChanged: (val) => selectedBank = val!,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: const Text('Withdrawal Request', style: TextStyle(color: AppColors.textPrimary)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(controller: amountController, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount (R)', prefixText: 'R ')),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedBank,
+                    dropdownColor: AppColors.surface,
+                    decoration: const InputDecoration(labelText: 'Bank'),
+                    items: ['Absa', 'Capitec', 'FNB', 'Nedbank', 'Standard Bank', 'TymeBank', 'Discovery Bank'].map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                    onChanged: (val) => setDialogState(() => selectedBank = val!),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(controller: accController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Account Number')),
+                  const SizedBox(height: 12),
+                  TextField(controller: branchController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Branch Code')),
+                  const SizedBox(height: 12),
+                  TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Account Holder Name')),
+                ],
               ),
-              TextField(controller: accController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Account Number')),
-              TextField(controller: branchController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Branch Code')),
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Account Holder Name')),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Submit Request')),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Submit Request')),
-        ],
+          );
+        },
       ),
     );
     if (confirmed != true) return;
@@ -286,7 +303,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Withdrawal request submitted.')));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Withdrawal failed. Please try again.')));
     }
   }
 }

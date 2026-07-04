@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/services/supabase_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/services_provider.dart';
 import '../providers/orders_provider.dart';
@@ -177,69 +178,99 @@ class ServiceDetailScreen extends ConsumerWidget {
             ),
           ],
         ),
-        bottomSheet: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            border: Border(top: BorderSide(color: AppColors.borderColor)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    context.push(
-                      AppRoutes.chat.replaceFirst(':id', service.userId),
-                      extra: 'Seller', // Ideally we'd have the name here
-                    );
-                  },
-                  child: const Text('Message'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    final orderState = ref.watch(orderNotifierProvider);
-                    final isLoading = orderState.isLoading;
+        bottomSheet: Consumer(
+          builder: (context, ref, child) {
+            final currentUserId = ref.watch(supabaseServiceProvider).currentUser?.id;
+            final isOwner = currentUserId == service.userId;
 
-                    return ElevatedButton(
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              try {
-                                await ref.read(orderNotifierProvider.notifier).createOrder(
-                                      serviceId: service.id,
-                                      sellerId: service.userId,
-                                      amount: service.price,
-                                    );
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Order placed successfully!')),
-                                  );
-                                  context.go(AppRoutes.home);
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Failed to place order: $e')),
-                                  );
-                                }
-                              }
-                            },
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Text('Place Order'),
-                    );
-                  },
-                ),
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                border: Border(top: BorderSide(color: AppColors.borderColor)),
               ),
-            ],
-          ),
+              child: isOwner
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'This is your own service',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              context.push(
+                                AppRoutes.chat.replaceFirst(':id', service.userId),
+                                extra: 'Seller',
+                              );
+                            },
+                            child: const Text('Message'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Builder(
+                            builder: (context) {
+                              final orderState = ref.watch(orderNotifierProvider);
+                              final isLoading = orderState.isLoading;
+
+                              return ElevatedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : () async {
+                                        try {
+                                          await ref.read(orderNotifierProvider.notifier).createOrder(
+                                                serviceId: service.id,
+                                                sellerId: service.userId,
+                                                amount: service.price,
+                                              );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Order placed successfully!')),
+                                            );
+                                            context.go(AppRoutes.home);
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Failed to place order: $e')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      )
+                                    : const Text('Place Order'),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+            );
+          },
         ),
       ),
       loading: () => const Scaffold(

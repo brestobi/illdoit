@@ -173,13 +173,32 @@ class PublicProfileScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Text('Error loading reviews: $err'),
+                error: (err, _) => const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline_rounded, size: 32, color: AppColors.error),
+                    SizedBox(height: 8),
+                    Text('Could not load reviews',
+                      style: TextStyle(color: AppColors.error)),
+                  ],
+                ),
               ),
             ],
           ),
         ),
         loading: () => const Center(child: WalkingWorkerLoader(label: 'Loading profile...')),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        error: (err, _) => const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+              SizedBox(height: 16),
+              Text('Could not load profile',
+                style: TextStyle(color: AppColors.error)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -371,12 +390,19 @@ class PublicProfileScreen extends ConsumerWidget {
                       padding: EdgeInsets.all(32),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    error: (err, stack) => Padding(
-                      padding: const EdgeInsets.all(16),
+                    error: (err, stack) => const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Center(
-                        child: Text(
-                          'Error loading services: $err',
-                          style: const TextStyle(color: Colors.red),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.error_outline_rounded, size: 32, color: Colors.red),
+                            SizedBox(height: 8),
+                            Text(
+                              'Could not load services',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
                         ),
                       ),
                     ),

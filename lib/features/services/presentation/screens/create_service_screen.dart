@@ -28,6 +28,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   late TextEditingController _priceController;
   late TextEditingController _deliveryTimeController;
   String? _selectedCategory;
+  String _selectedServiceType = 'digital'; // digital or physical
   final List<dynamic> _images = []; // Can be File or String (URL)
 
   @override
@@ -39,6 +40,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     _priceController = TextEditingController(text: service?.price.toString() ?? '');
     _deliveryTimeController = TextEditingController(text: service?.deliveryTime.toString() ?? '');
     _selectedCategory = service?.category;
+    _selectedServiceType = service?.serviceType ?? 'digital';
     if (service != null) {
       _images.addAll(service.images);
     }
@@ -102,6 +104,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
           'title': _titleController.text.trim(),
           'description': _descriptionController.text.trim(),
           'category': _selectedCategory,
+          'service_type': _selectedServiceType,
           'price': double.parse(_priceController.text),
           'delivery_time': int.parse(_deliveryTimeController.text),
           'images': imageUrls,
@@ -282,6 +285,114 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                 error: (e, __) => Text('Error loading categories: $e', style: const TextStyle(color: Colors.red)),
               ),
               const SizedBox(height: 16),
+
+              // Service Type Toggle
+              const Text(
+                'Service Type',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _selectedServiceType == 'physical'
+                    ? 'Physical services require in-person delivery.'
+                    : 'Digital services are delivered online.',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedServiceType = 'digital'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: _selectedServiceType == 'digital'
+                              ? AppColors.primary.withOpacity(0.12)
+                              : AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _selectedServiceType == 'digital'
+                                ? AppColors.primary
+                                : AppColors.borderColor,
+                            width: _selectedServiceType == 'digital' ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.computer_rounded,
+                              color: _selectedServiceType == 'digital'
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Digital',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _selectedServiceType == 'digital'
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedServiceType = 'physical'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: _selectedServiceType == 'physical'
+                              ? AppColors.primary.withOpacity(0.12)
+                              : AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _selectedServiceType == 'physical'
+                                ? AppColors.primary
+                                : AppColors.borderColor,
+                            width: _selectedServiceType == 'physical' ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.location_on_rounded,
+                              color: _selectedServiceType == 'physical'
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Physical',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _selectedServiceType == 'physical'
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
               // Price & Delivery Time
               Row(

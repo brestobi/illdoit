@@ -38,13 +38,8 @@ class OrderRepositoryImpl implements OrderRepository {
       );
       final order = Order.fromJson(response);
 
-      // 2. Increment total_orders for the service
-      await _supabaseService.client.rpc('increment', params: {
-        'row_id': serviceId,
-        'table': 'services',
-        'column': 'total_orders',
-        'amount': 1,
-      });
+      // 2. Count and update total_orders for the service (reliable: no RPC needed)
+      await _syncServiceOrderCount(serviceId);
 
       // 3. Create escrow transaction
       await _ref.read(transactionRepositoryProvider).createEscrowPayment(
@@ -56,6 +51,23 @@ class OrderRepositoryImpl implements OrderRepository {
       return order;
     } catch (e) {
       throw ServerException('Failed to create order: $e');
+    }
+  }
+
+  /// Count all orders for [serviceId] and sync the total to the services table.
+  Future<void> _syncServiceOrderCount(String serviceId) async {
+    try {
+      final orders = await _supabaseService.query(
+        table: 'orders',
+        filters: {'service_id': serviceId},
+      );
+      await _supabaseService.update(
+        table: 'services',
+        id: serviceId,
+        data: {'total_orders': orders.length},
+      );
+    } catch (_) {
+      // Non-critical — don't fail the order if the count sync errors
     }
   }
 
@@ -81,11 +93,24 @@ class OrderRepositoryImpl implements OrderRepository {
     try {
       final results = await _supabaseService.client
           .from('orders')
-          .select()
+          .select('*, service:services!inner(title), buyer:users!buyer_id(display_name), seller:users!seller_id(display_name)')
           .eq('buyer_id', currentUser.id)
           .order('created_at', ascending: false);
-      
-      return (results as List).map((e) => Order.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+
+      return (results as List).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        // Flatten joined data into top-level keys
+        if (map['service'] is Map) {
+          map['service_title'] = (map['service'] as Map)['title'];
+        }
+        if (map['seller'] is Map) {
+          map['seller_name'] = (map['seller'] as Map)['display_name'];
+        }
+        if (map['buyer'] is Map) {
+          map['buyer_name'] = (map['buyer'] as Map)['display_name'];
+        }
+        return Order.fromJson(map);
+      }).toList();
     } catch (e) {
       throw ServerException('Failed to fetch purchases: $e');
     }
@@ -99,11 +124,23 @@ class OrderRepositoryImpl implements OrderRepository {
     try {
       final results = await _supabaseService.client
           .from('orders')
-          .select()
+          .select('*, service:services!inner(title), buyer:users!buyer_id(display_name), seller:users!seller_id(display_name)')
           .eq('seller_id', currentUser.id)
           .order('created_at', ascending: false);
-      
-      return (results as List).map((e) => Order.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+
+      return (results as List).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        if (map['service'] is Map) {
+          map['service_title'] = (map['service'] as Map)['title'];
+        }
+        if (map['seller'] is Map) {
+          map['seller_name'] = (map['seller'] as Map)['display_name'];
+        }
+        if (map['buyer'] is Map) {
+          map['buyer_name'] = (map['buyer'] as Map)['display_name'];
+        }
+        return Order.fromJson(map);
+      }).toList();
     } catch (e) {
       throw ServerException('Failed to fetch sales: $e');
     }

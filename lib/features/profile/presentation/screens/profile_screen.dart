@@ -293,7 +293,13 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error: $err'),
+            Icon(Icons.error_outline_rounded, size: 48, color: theme.colorScheme.error),
+            const SizedBox(height: 16),
+            Text(
+              'Could not load profile',
+              style: TextStyle(color: theme.colorScheme.error),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => ref.refresh(profileProvider),
@@ -438,9 +444,16 @@ Widget _buildStatSection(BuildContext context, dynamic user, AsyncValue<double> 
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, __) => Text(
-              'Failed to load reviews: $err',
-              style: TextStyle(color: theme.colorScheme.error),
+            error: (err, __) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline_rounded, size: 32, color: theme.colorScheme.error),
+                const SizedBox(height: 8),
+                Text(
+                  'Could not load reviews',
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+              ],
             ),
           ),
         ],

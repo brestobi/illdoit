@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/models/job.dart';
+import '../../../../core/utils/marker_utils.dart';
 
 final nearbyPhysicalJobsProvider = FutureProvider.autoDispose.family<List<Job>, Map<String, double>>((ref, params) async {
   final supabase = ref.read(supabaseServiceProvider).client;
@@ -17,7 +15,7 @@ final nearbyPhysicalJobsProvider = FutureProvider.autoDispose.family<List<Job>, 
   });
 
   final List<dynamic> data = response as List<dynamic>;
-  
+
   // Filter for physical jobs locally as RPC might return all
   return data
       .map((e) => Job.fromJson(e as Map<String, dynamic>))
@@ -36,7 +34,6 @@ class _JobMapDiscoveryScreenState extends ConsumerState<JobMapDiscoveryScreen> {
   GoogleMapController? _mapController;
   LatLng? _currentPosition;
   BitmapDescriptor? _customIcon;
-
   String? _errorMessage;
 
   @override
@@ -45,25 +42,11 @@ class _JobMapDiscoveryScreenState extends ConsumerState<JobMapDiscoveryScreen> {
     _initializeMap();
   }
 
-  Future<BitmapDescriptor> _getBitmapDescriptorFromSvg(String assetPath, Size size) async {
-    final pictureInfo = await vg.loadPicture(SvgAssetLoader(assetPath), null);
-    final picture = pictureInfo.picture;
-    final ui.Image image = await picture.toImage(size.width.toInt(), size.height.toInt());
-    final ByteData? bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (bytes == null) {
-      throw Exception('Failed to serialize SVG picture');
-    }
-    return BitmapDescriptor.bytes(bytes.buffer.asUint8List());
-  }
-
   Future<void> _initializeMap() async {
     try {
-      // Load custom SVG logo.svg as BitmapDescriptor with a standard marker size (e.g. 120x120 pixels)
-      final icon = await _getBitmapDescriptorFromSvg(
-        'assets/icons/logo.svg',
-        const Size(120, 120),
-      );
-      
+      // Load custom logo marker using shared utility
+      final icon = await createLogoMarker(size: 80);
+
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Location services are disabled.');
@@ -76,9 +59,9 @@ class _JobMapDiscoveryScreenState extends ConsumerState<JobMapDiscoveryScreen> {
           throw Exception('Location permissions are denied');
         }
       }
-      
+
       final position = await Geolocator.getCurrentPosition();
-      
+
       if (mounted) {
         setState(() {
           _customIcon = icon;
@@ -122,7 +105,10 @@ class _JobMapDiscoveryScreenState extends ConsumerState<JobMapDiscoveryScreen> {
             markerId: MarkerId(job.id),
             position: LatLng(job.latitude!, job.longitude!),
             icon: _customIcon!,
-            infoWindow: InfoWindow(title: job.title, snippet: 'R${job.budget.toStringAsFixed(0)}'),
+            infoWindow: InfoWindow(
+              title: job.title,
+              snippet: 'R${job.budget.toStringAsFixed(0)}',
+            ),
           )).toSet(),
           myLocationEnabled: true,
         ),

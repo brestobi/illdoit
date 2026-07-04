@@ -68,7 +68,21 @@ class ConversationsScreen extends ConsumerWidget {
                 },
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline_rounded, size: 48, color: theme.colorScheme.error),
+              const SizedBox(height: 16),
+              Text(
+                'Could not load conversations',
+                style: TextStyle(color: theme.colorScheme.error),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ),
       bottomNavigationBar: const MainBottomNavBar(currentIndex: 2),
     );

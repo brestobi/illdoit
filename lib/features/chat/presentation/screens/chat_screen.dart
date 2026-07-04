@@ -54,21 +54,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-  bool _isRestrictedHours() {
-    final now = DateTime.now();
-    final hour = now.hour;
-    return hour >= 16 || hour < 7; // 4:00 PM to 7:00 AM
-  }
-
-  String _timeUntilNextWindow() {
-    return MessageRepositoryImpl.timeUntilNextWindow();
-  }
-
   void _scanMessageText(String text) {
     final cleanText = text.toLowerCase();
 
     // Regex to match phone numbers (7+ digits, option + prefix)
-    final phoneRegex = RegExp(r'(\+?\d[\d\s\-\(\)]‌{7,}\d)');
+    final phoneRegex = RegExp(r'(\+?\d[\d\s\-\(\)]{7,}\d)');
     // Regex for emails
     final emailRegex = RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}');
 
@@ -137,7 +127,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send: $e')),
+          SnackBar(content: Text('Could not send message. Please try again.')),
         );
       }
     }
@@ -154,7 +144,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send quick action: $e')),
+          SnackBar(content: Text('Could not send. Please try again.')),
         );
       }
     }
@@ -215,7 +205,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to share location: $e')),
+          SnackBar(content: Text('Could not share location. Please try again.')),
         );
       }
     } finally {
@@ -320,7 +310,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to update progress: $e')),
+                              SnackBar(content: Text('Could not update progress. Please try again.')),
                             );
                           }
                         }
@@ -552,13 +542,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           final jobType = job['job_type'] as String? ?? 'digital';
           final isPhysical = jobType == 'physical';
 
-          final isRestricted = isPhysical && _isRestrictedHours();
-
           return Column(
             children: [
               _buildJobHeaderBanner(job),
               _buildPrivacyDisclaimer(),
-              if (isRestricted) _buildRestrictedBanner(),
               Expanded(
                 child: Consumer(
                   builder: (context, ref, child) {
@@ -586,17 +573,35 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Center(child: Text('Error: $err')),
+                      error: (err, stack) => const Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textTertiary),
+      SizedBox(height: 12),
+      Text('Could not load messages', style: TextStyle(color: AppColors.textSecondary)),
+    ],
+  ),
+),
                     );
                   },
                 ),
               ),
-              _buildInputSection(jobId, isPhysical, isRestricted),
+              _buildInputSection(jobId, isPhysical),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error loading active job: $err')),
+        error: (err, _) => const Center(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textTertiary),
+      SizedBox(height: 12),
+      Text('Could not load conversation', style: TextStyle(color: AppColors.textSecondary)),
+    ],
+  ),
+),
       ),
     );
   }
@@ -697,35 +702,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 fontSize: 11,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRestrictedBanner() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: AppColors.error.withValues(alpha: 0.15),
-      child: Row(
-        children: [
-          const Icon(Icons.timer_off_outlined, color: AppColors.error, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Restricted Hours (4:00 PM - 7:00 AM)',
-                  style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Physical work & messaging are locked for safety. Window opens in ${_timeUntilNextWindow()}.',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                ),
-              ],
             ),
           ),
         ],
@@ -964,37 +940,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       );
 
-  Widget _buildInputSection(String jobId, bool isPhysical, bool isRestricted) {
-    if (isRestricted) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.borderColor)),
-        ),
-        child: SafeArea(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              color: AppColors.darkBg,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.lock_clock, color: AppColors.textTertiary, size: 16),
-                SizedBox(width: 8),
-                Text(
-                  'Messaging is disabled during restricted hours.',
-                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
+  Widget _buildInputSection(String jobId, bool isPhysical) {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,

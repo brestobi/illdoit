@@ -87,7 +87,19 @@ class _OrdersList extends ConsumerWidget {
               },
             ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      error: (err, stack) => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textTertiary),
+            SizedBox(height: 12),
+            Text(
+              'Could not load orders',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -131,11 +143,21 @@ class _OrderTile extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isBuyer ? 'Purchased Service' : 'Sale of Service',
+            order.serviceTitle ?? (isBuyer ? 'Purchased Service' : 'Sale of Service'),
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isBuyer
+                ? 'From: ${order.sellerName ?? "Seller"}'
+                : 'Buyer: ${order.buyerName ?? "Buyer"}',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 4),
@@ -240,7 +262,14 @@ class _OrderTile extends ConsumerWidget {
                   onChanged: (val) => setState(() => selectedReason = val),
                 ),
                 loading: () => const LinearProgressIndicator(),
-                error: (e, __) => Text('Error: $e', style: const TextStyle(color: Colors.red)),
+                error: (e, __) => const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.warning_amber_rounded, size: 18, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Text('Could not load reasons', style: TextStyle(color: Colors.redAccent, fontSize: 13)),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               TextField(

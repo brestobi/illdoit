@@ -13,6 +13,7 @@ class Service with _$Service {
     required String category,
     required double price,
     @JsonKey(name: 'delivery_time') required int deliveryTime,
+    @JsonKey(name: 'service_type') @Default('digital') String serviceType,
     @Default([]) List<String> images,
     @Default(0.0) double rating,
     @JsonKey(name: 'total_orders') @Default(0) int totalOrders,

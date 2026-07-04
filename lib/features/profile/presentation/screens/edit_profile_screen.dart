@@ -95,7 +95,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Could not save profile. Please try again.')),
         );
       }
     } finally {
@@ -236,7 +236,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       validator: (value) => Validators.required(value, 'Province'),
                     ),
                     loading: () => const LinearProgressIndicator(),
-                    error: (e, __) => Text('Error loading provinces: $e', style: const TextStyle(color: Colors.red)),
+                    error: (e, __) => const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error_outline_rounded, size: 16, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Could not load provinces',
+                          style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 20),
 
@@ -256,7 +264,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+        error: (err, stack) => const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline_rounded, size: 48, color: Colors.red),
+              SizedBox(height: 16),
+              Text('Could not load profile',
+                style: TextStyle(color: Colors.red)),
+            ],
+          ),
+        ),
       ),
     );
   }

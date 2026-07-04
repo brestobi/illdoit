@@ -37,7 +37,7 @@ class _ChangeRoleScreenState extends ConsumerState<ChangeRoleScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating role: $e')),
+          SnackBar(content: Text('Could not update role. Please try again.')),
         );
       }
     }

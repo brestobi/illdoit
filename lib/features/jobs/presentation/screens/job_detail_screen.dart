@@ -148,23 +148,41 @@ class JobDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // Safety Tip for Physical Jobs
+                // Workable time advice for physical jobs
                 if (job.jobType == 'physical') ...[
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.security, color: Colors.orange),
-                        SizedBox(width: 12),
+                        const Icon(Icons.schedule_rounded, color: AppColors.primary, size: 22),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            'Safety Tip: For physical jobs, always meet in a public place and tell a friend your location.',
-                            style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.w600),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Workable time',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'This is a physical job. We recommend arranging a suitable time with the client, typically weekdays between 8am — 5pm. Confirm the exact schedule before starting.',
+                                style: TextStyle(
+                                  color: AppColors.primary.withValues(alpha: 0.85),
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -363,12 +381,37 @@ class JobDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _handleCompleteJob(BuildContext context, WidgetRef ref, String jobId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Complete Job?', style: TextStyle(color: AppColors.textPrimary)),
+        content: const Text(
+          'This will mark the job as completed. The record will be kept for reference.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Complete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     try {
       await ref.read(jobNotifierProvider.notifier).completeJob(jobId);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Job marked as completed.')),
+          const SnackBar(content: Text('Job completed and removed.')),
         );
+        context.pop(); // Go back to jobs list
       }
     } catch (e) {
       if (context.mounted) {

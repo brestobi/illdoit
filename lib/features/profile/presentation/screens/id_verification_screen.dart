@@ -21,6 +21,17 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
   final _personalFormKey = GlobalKey<FormState>();
   final _bankFormKey = GlobalKey<FormState>();
   int _currentStep = 0;
+
+  int get _totalSteps => _selectedIdType == 'South African ID Smart Card' ? 6 : 5;
+
+  // Maps the displayed page index to the actual PageView child index.
+  // Non-Smart-Card skips the back-image step (index 3).
+  int _toPageIndex(int displayStep) {
+    if (_selectedIdType != 'South African ID Smart Card' && displayStep >= 3) {
+      return displayStep + 1;
+    }
+    return displayStep;
+  }
   
   // Personal Details
   final _nameController = TextEditingController();
@@ -81,7 +92,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
       );
       return;
     }
-    
+
     if (_currentStep == 2 && _idFrontFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please upload the front of your ID')),
@@ -96,21 +107,15 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
       return;
     }
 
-    if (_currentStep == 4) {
+    if (_currentStep == _totalSteps - 2) {
+      // This is the bank details step (second-last before selfie)
       if (!_bankFormKey.currentState!.validate()) return;
     }
 
     if (_currentStep < _totalSteps - 1) {
-      // Skip back image step if not a Smart Card
-      if (_currentStep == 2 && _selectedIdType != 'South African ID Smart Card') {
-        _pageController.jumpToPage(4);
-        return;
-      }
-
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      final nextPage = _toPageIndex(_currentStep + 1);
+      _pageController.jumpToPage(nextPage);
+      setState(() => _currentStep++);
     } else {
       _submit();
     }
@@ -118,18 +123,11 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
 
   void _previousPage() {
     if (_currentStep > 0) {
-      if (_currentStep == 4 && _selectedIdType != 'South African ID Smart Card') {
-        _pageController.jumpToPage(2);
-        return;
-      }
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      final prevPage = _toPageIndex(_currentStep - 1);
+      _pageController.jumpToPage(prevPage);
+      setState(() => _currentStep--);
     }
   }
-
-  int get _totalSteps => 6;
 
   Future<void> _submit() async {
     if (_selfieFile == null) {
@@ -196,7 +194,7 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('Verification submission failed. Please try again.'), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -257,7 +255,6 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
             child: PageView(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (index) => setState(() => _currentStep = index),
               children: [
                 _buildPersonalInfoStep(),
                 _buildIdTypeStep(idTypesAsync),
@@ -454,7 +451,10 @@ class _IdVerificationScreenState extends ConsumerState<IdVerificationScreen> {
               )).toList(),
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, __) => Text('Error loading ID types: $e', style: const TextStyle(color: Colors.red)),
+            error: (e, __) => const Text(
+              'Could not load ID types. Please try again.',
+              style: TextStyle(color: Colors.redAccent, fontSize: 13),
+            ),
           ),
         ],
       ),

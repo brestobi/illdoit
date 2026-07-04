@@ -23,6 +23,71 @@ class PinNotifier extends StateNotifier<PinStatus> {
 
   String? get _currentUserId => _supabaseService.currentUser?.id;
 
+  // Rate limiting
+  int _failedAttempts = 0;
+  DateTime? _lockoutUntil;
+  static const _maxAttempts = 5;
+  static const _lockoutMinutes = 15;
+
+  /// Whether the user is currently locked out due to too many failed attempts.
+  bool get isLockedOut {
+    if (_lockoutUntil == null) return false;
+    if (DateTime.now().isAfter(_lockoutUntil!)) {
+      _lockoutUntil = null;
+      _failedAttempts = 0;
+      return false;
+    }
+    return true;
+  }
+
+  int get remainingAttempts => isLockedOut ? 0 : _maxAttempts - _failedAttempts;
+
+  int get lockoutMinutesRemaining {
+    if (!isLockedOut || _lockoutUntil == null) return 0;
+    return _lockoutUntil!.difference(DateTime.now()).inMinutes + 1;
+  }
+
+  void _recordFailedAttempt() {
+    _failedAttempts++;
+    if (_failedAttempts >= _maxAttempts) {
+      _lockoutUntil = DateTime.now().add(const Duration(minutes: _lockoutMinutes));
+    }
+  }
+
+  /// Reset the PIN — only callable after password verification.
+  /// Clears the pin_hash so user can set a new one.
+  Future<void> resetPin() async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    _failedAttempts = 0;
+    _lockoutUntil = null;
+
+    await _supabaseService.update(
+      table: 'users',
+      id: userId,
+      data: {'pin_hash': null},
+    );
+
+    state = PinStatus.notSet;
+  }
+
+  /// Verify the account password (not the PIN) against Supabase Auth.
+  /// Used for PIN recovery flow.
+  Future<bool> verifyAccountPassword(String password) async {
+    final email = _supabaseService.currentUser?.email;
+    if (email == null) return false;
+
+    try {
+      // Sign in with password to verify it's correct.
+      // This doesn't change the session — it just validates the credentials.
+      await _supabaseService.signInWithEmail(email: email, password: password);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Check if the current user already has a PIN set (from DB).
   /// Updates state to [PinStatus.notSet] if no PIN exists.
   Future<void> checkPinStatus() async {
@@ -50,7 +115,6 @@ class PinNotifier extends StateNotifier<PinStatus> {
         state = PinStatus.locked;
       }
     } catch (_) {
-      // On error, assume locked — don't expose account info
       state = PinStatus.locked;
     }
   }
@@ -58,6 +122,8 @@ class PinNotifier extends StateNotifier<PinStatus> {
   /// Verify the entered PIN against the stored hash.
   /// Returns true if verified, false otherwise.
   Future<bool> verifyPin(String pin) async {
+    if (isLockedOut) return false;
+
     final userId = _currentUserId;
     if (userId == null) return false;
 
@@ -79,17 +145,21 @@ class PinNotifier extends StateNotifier<PinStatus> {
       );
 
       if (isValid) {
+        _failedAttempts = 0;
+        _lockoutUntil = null;
         state = PinStatus.unlocked;
         return true;
       }
+
+      _recordFailedAttempt();
       return false;
     } catch (_) {
+      _recordFailedAttempt();
       return false;
     }
   }
 
   /// Set a new PIN for the current user.
-  /// Hashes it with the user's ID and stores in Supabase.
   Future<void> setPin(String pin) async {
     final userId = _currentUserId;
     if (userId == null) return;
@@ -102,6 +172,16 @@ class PinNotifier extends StateNotifier<PinStatus> {
       data: {'pin_hash': hashedPin},
     );
 
+    _failedAttempts = 0;
+    _lockoutUntil = null;
+    state = PinStatus.unlocked;
+  }
+
+  /// Unlock the wallet via biometrics (fingerprint/face).
+  /// Only call after successful biometric authentication.
+  void biometricUnlock() {
+    _failedAttempts = 0;
+    _lockoutUntil = null;
     state = PinStatus.unlocked;
   }
 
@@ -110,8 +190,10 @@ class PinNotifier extends StateNotifier<PinStatus> {
     state = PinStatus.locked;
   }
 
-  /// Reset to locked on sign-out / user change.
+  /// Reset to notSet on sign-out / user change.
   void reset() {
+    _failedAttempts = 0;
+    _lockoutUntil = null;
     state = PinStatus.notSet;
   }
 }

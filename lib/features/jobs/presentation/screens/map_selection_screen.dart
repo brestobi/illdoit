@@ -28,14 +28,22 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        throw Exception('Location services are disabled.');
+        setState(() {
+          _errorMessage = 'Location services are disabled. Using default location.';
+          _isLoading = false;
+        });
+        return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied');
+          setState(() {
+            _errorMessage = 'Location permission denied. Using default location.';
+            _isLoading = false;
+          });
+          return;
         }
       }
 
@@ -89,10 +97,27 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
                     top: 16,
                     left: 16,
                     right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.red.withOpacity(0.8),
-                      child: Text(_errorMessage!, style: const TextStyle(color: Colors.white)),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
               ],

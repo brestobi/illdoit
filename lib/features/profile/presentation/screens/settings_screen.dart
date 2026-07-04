@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/router/app_router.dart';
 import '../providers/profile_provider.dart';
@@ -131,9 +132,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _buildActionTile(
                   icon: Icons.account_circle_outlined,
                   title: 'Change Account Role',
-                  onTap: () {
-                    // Navigate to a screen to change role
-                  },
+                  onTap: () => context.push(AppRoutes.changeRole),
                 ),
                 Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
@@ -145,14 +144,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _buildActionTile(
                   icon: Icons.notifications_none,
                   title: 'Notification Preferences',
-                  onTap: () {},
+                  onTap: () => context.push(AppRoutes.notificationPreferences),
                 ),
                 Divider(height: 1, indent: 56, color: theme.dividerColor),
                 _buildActionTile(
                   icon: Icons.language,
                   title: 'Language',
                   trailing: 'English (US)',
-                  onTap: () {},
+                  onTap: null, // Not yet implemented
                 ),
               ]),
 
@@ -222,7 +221,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e', style: TextStyle(color: theme.colorScheme.error))),
+        error: (e, s) => const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline_rounded, size: 48, color: AppColors.textTertiary),
+              SizedBox(height: 12),
+              Text('Could not load settings', style: TextStyle(color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -293,11 +301,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required IconData icon,
     required String title,
     String? trailing,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     final theme = Theme.of(context);
     return ListTile(
       onTap: onTap,
+      enabled: onTap != null,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

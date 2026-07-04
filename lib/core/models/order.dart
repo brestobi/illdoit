@@ -26,6 +26,10 @@ class Order with _$Order {
     required double amount,
     @Default(0) double fee,
     @Default(OrderStatus.pending) OrderStatus status,
+    // Populated via joins — not columns on orders table directly
+    @JsonKey(name: 'service_title') String? serviceTitle,
+    @JsonKey(name: 'buyer_name') String? buyerName,
+    @JsonKey(name: 'seller_name') String? sellerName,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _Order;

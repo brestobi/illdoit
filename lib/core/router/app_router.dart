@@ -19,6 +19,7 @@ import '../../features/services/presentation/screens/my_orders_screen.dart';
 import '../../features/jobs/presentation/screens/my_applications_screen.dart';
 import '../../features/jobs/presentation/screens/manage_applications_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/notification_preferences_screen.dart';
 
 import '../../features/services/presentation/screens/create_service_screen.dart';
 import '../../features/jobs/presentation/screens/create_job_screen.dart';
@@ -76,6 +77,7 @@ class AppRoutes {
   static const String yocoPayment = '/yoco-payment';
   static const String walletPin = '/wallet-pin';
   static const String safetyTips = '/safety-tips';
+  static const String notificationPreferences = '/notification-preferences';
   static const String notifications = '/notifications';
   static const String messages = '/messages';
   static const String chat = '/chat/:id';
@@ -316,6 +318,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             );
           },
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.notificationPreferences,
+        builder: (context, state) => const NotificationPreferencesScreen(),
       ),
       GoRoute(
         path: AppRoutes.notifications,

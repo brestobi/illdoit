@@ -36,6 +36,10 @@ class ReviewRepositoryImpl implements ReviewRepository {
       );
 
       await _recalculateTargetRating(targetUserId);
+      // Also recalculate service rating if review is tied to a service
+      if (serviceId != null) {
+        await _recalculateServiceRating(serviceId);
+      }
       return response;
     } catch (e) {
       if (e is ServerException || e is AuthenticationException) rethrow;
@@ -46,7 +50,19 @@ class ReviewRepositoryImpl implements ReviewRepository {
   @override
   Future<void> deleteReview({required String reviewId}) async {
     try {
+      // Fetch the review first to get service_id before deleting
+      final reviews = await _supabaseService.query(
+        table: 'reviews',
+        filters: {'id': reviewId},
+      );
+      final serviceId = reviews.isNotEmpty ? reviews.first['service_id'] as String? : null;
+
       await _supabaseService.delete(table: 'reviews', id: reviewId);
+
+      // Recalculate ratings after deletion
+      if (serviceId != null) {
+        await _recalculateServiceRating(serviceId);
+      }
     } catch (e) {
       throw ServerException('Failed to delete review: $e');
     }
@@ -84,9 +100,41 @@ class ReviewRepositoryImpl implements ReviewRepository {
       if (targetUserId != null) {
         await _recalculateTargetRating(targetUserId);
       }
+      final serviceId = updated['service_id'] as String?;
+      if (serviceId != null) {
+        await _recalculateServiceRating(serviceId);
+      }
     } catch (e) {
       throw ServerException('Failed to update review: $e');
     }
+  }
+
+  /// Recalculate and update the average rating for a service.
+  Future<void> _recalculateServiceRating(String serviceId) async {
+    final reviews = await _supabaseService.query(
+      table: 'reviews',
+      filters: {'service_id': serviceId},
+    );
+
+    if (reviews.isEmpty) {
+      await _supabaseService.update(
+        table: 'services',
+        id: serviceId,
+        data: {'rating': 0},
+      );
+      return;
+    }
+
+    final totalRating = reviews
+        .map((review) => (review['rating'] as num).toDouble())
+        .reduce((a, b) => a + b);
+    final averageRating = totalRating / reviews.length;
+
+    await _supabaseService.update(
+      table: 'services',
+      id: serviceId,
+      data: {'rating': averageRating},
+    );
   }
 
   Future<void> _recalculateTargetRating(String targetUserId) async {

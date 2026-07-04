@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:local_auth/local_auth.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../providers/pin_provider.dart';
 
 /// PIN entry / setup screen for wallet security.
 ///
-/// Handles two flows:
+/// Handles three flows:
 /// 1. **Setup** — First-time user creates a 4-digit PIN (mode == notSet)
 /// 2. **Entry** — Returning user enters their PIN to unlock the wallet (mode == locked)
+/// 3. **Recovery** — User forgot PIN → verify account password → set new PIN
 class PinScreen extends ConsumerStatefulWidget {
   const PinScreen({super.key});
 
@@ -19,12 +21,17 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   final _pinController = TextEditingController();
   final _confirmController = TextEditingController();
   final _focusNode = FocusNode();
+  final _passwordController = TextEditingController();
   String _enteredPin = '';
   String _confirmPin = '';
   bool _showError = false;
   String _errorMessage = '';
   bool _isLoading = false;
-  bool _showConfirm = false; // For setup: show confirm step
+  bool _showConfirm = false;
+  bool _showRecovery = false;
+  bool _canUseBiometrics = false;
+
+  final LocalAuthentication _localAuth = LocalAuthentication();
 
   @override
   void initState() {
@@ -33,6 +40,35 @@ class _PinScreenState extends ConsumerState<PinScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pinProvider.notifier).checkPinStatus();
     });
+    _checkBiometrics();
+  }
+
+  Future<void> _checkBiometrics() async {
+    try {
+      final canCheck = await _localAuth.canCheckBiometrics;
+      final isAvailable = await _localAuth.isDeviceSupported();
+      if (mounted) {
+        setState(() => _canUseBiometrics = canCheck && isAvailable);
+      }
+    } catch (_) {
+      // Biometrics unavailable
+    }
+  }
+
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      final authenticated = await _localAuth.authenticate(
+        localizedReason: 'Unlock your wallet',
+        biometricOnly: true,
+      );
+      if (authenticated && mounted) {
+        // Mark the PIN as verified for this session
+        ref.read(pinProvider.notifier).biometricUnlock();
+        if (mounted) Navigator.pop(context, true);
+      }
+    } catch (_) {
+      // Biometric auth failed — user can still enter PIN
+    }
   }
 
   @override
@@ -40,6 +76,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
     _pinController.dispose();
     _confirmController.dispose();
     _focusNode.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -57,7 +94,6 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         if (_enteredPin.length == 4) {
           final pinStatus = ref.read(pinProvider);
           if (pinStatus == PinStatus.notSet) {
-            // First step of setup — go to confirm
             setState(() {
               _showConfirm = true;
               _confirmPin = '';
@@ -75,7 +111,6 @@ class _PinScreenState extends ConsumerState<PinScreen> {
       if (_confirmPin.isNotEmpty) {
         setState(() => _confirmPin = _confirmPin.substring(0, _confirmPin.length - 1));
       } else {
-        // Go back to first entry
         setState(() {
           _showConfirm = false;
           _enteredPin = '';
@@ -130,17 +165,133 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   Future<void> _verifyEntry() async {
     setState(() => _isLoading = true);
 
-    final isValid = await ref.read(pinProvider.notifier).verifyPin(_enteredPin);
+    final notifier = ref.read(pinProvider.notifier);
+
+    if (notifier.isLockedOut) {
+      setState(() {
+        _showError = true;
+        _errorMessage = 'Too many attempts. Try again in ${notifier.lockoutMinutesRemaining} min.';
+        _isLoading = false;
+        _enteredPin = '';
+      });
+      return;
+    }
+
+    final isValid = await notifier.verifyPin(_enteredPin);
 
     if (isValid) {
       if (mounted) Navigator.pop(context, true);
     } else {
+      final remaining = notifier.remainingAttempts;
       setState(() {
         _showError = true;
-        _errorMessage = 'Incorrect PIN. Please try again.';
+        if (notifier.isLockedOut) {
+          _errorMessage = 'Locked out. Try again in ${notifier.lockoutMinutesRemaining} min.';
+        } else {
+          _errorMessage = 'Incorrect PIN. $remaining attempt${remaining == 1 ? '' : 's'} remaining.';
+        }
         _isLoading = false;
         _enteredPin = '';
       });
+    }
+  }
+
+  Future<void> _handleForgotPin() async {
+    // Show password verification dialog
+    final password = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          bool obscure = true;
+          bool dialogLoading = false;
+          String? dialogError;
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              'Reset Wallet PIN',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Enter your account password to reset your PIN.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: obscure,
+                  enabled: !dialogLoading,
+                  decoration: InputDecoration(
+                    hintText: 'Account password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => obscure = !obscure),
+                    ),
+                  ),
+                ),
+                if (dialogError != null) ...[
+                  const SizedBox(height: 12),
+                  Text(dialogError!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: dialogLoading ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: dialogLoading
+                    ? null
+                    : () async {
+                        final pw = _passwordController.text;
+                        if (pw.isEmpty) {
+                          setState(() => dialogError = 'Please enter your password.');
+                          return;
+                        }
+                        setState(() {
+                          dialogLoading = true;
+                          dialogError = null;
+                        });
+                        final valid = await ref.read(pinProvider.notifier).verifyAccountPassword(pw);
+                        if (valid) {
+                          Navigator.pop(ctx, pw);
+                        } else {
+                          setState(() {
+                            dialogLoading = false;
+                            dialogError = 'Incorrect password. Please try again.';
+                          });
+                        }
+                      },
+                child: dialogLoading
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Verify'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (password != null && mounted) {
+      // Password verified — reset the PIN
+      await ref.read(pinProvider.notifier).resetPin();
+      _passwordController.clear();
+      setState(() {
+        _showRecovery = false;
+        _enteredPin = '';
+        _confirmPin = '';
+        _showConfirm = false;
+        _showError = false;
+      });
+      // Now user can set a new PIN (state is now notSet)
     }
   }
 
@@ -152,6 +303,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   Widget build(BuildContext context) {
     final pinStatus = ref.watch(pinProvider);
     final isSetup = pinStatus == PinStatus.notSet;
+    final notifier = ref.read(pinProvider.notifier);
 
     return Scaffold(
       backgroundColor: AppColors.darkBg,
@@ -190,6 +342,15 @@ class _PinScreenState extends ConsumerState<PinScreen> {
               ),
               textAlign: TextAlign.center,
             ),
+
+            if (!isSetup && notifier.isLockedOut) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Locked out • ${notifier.lockoutMinutesRemaining} min remaining',
+                style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ],
+
             const SizedBox(height: 32),
 
             // PIN dot display
@@ -219,7 +380,8 @@ class _PinScreenState extends ConsumerState<PinScreen> {
             // Error message
             if (_showError)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -242,9 +404,30 @@ class _PinScreenState extends ConsumerState<PinScreen> {
             // Number pad
             _buildNumberPad(),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            // Cancel / Back button
+            // Biometric button (entry mode only)
+            if (!isSetup && _canUseBiometrics)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: TextButton.icon(
+                  onPressed: _authenticateWithBiometrics,
+                  icon: const Icon(Icons.fingerprint, size: 22),
+                  label: const Text('Use fingerprint / face'),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                ),
+              ),
+
+            // Forgot PIN + Cancel
+            if (!isSetup)
+              TextButton(
+                onPressed: notifier.isLockedOut ? null : _handleForgotPin,
+                child: const Text(
+                  'Forgot PIN?',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ),
+
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(
@@ -285,7 +468,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        const SizedBox(width: 72), // Empty space for symmetry
+        const SizedBox(width: 72),
         _buildKey('0'),
         _buildKey('delete', isDelete: true),
       ],
@@ -293,11 +476,13 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   }
 
   Widget _buildKey(String label, {bool isDelete = false}) {
+    final notifier = ref.read(pinProvider.notifier);
+    final disabled = _isLoading || (!ref.read(pinProvider).toString().contains('notSet') && notifier.isLockedOut);
     return SizedBox(
       width: 72,
       height: 72,
       child: TextButton(
-        onPressed: _isLoading
+        onPressed: disabled
             ? null
             : () {
                 if (isDelete) {
